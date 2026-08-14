@@ -1,0 +1,217 @@
+<title>Vista previa — emails de FG Hair Studio</title>
+<style>
+  :root {
+    --bg: #f3f2ef;
+    --surface: #ffffff;
+    --border: #e2e0da;
+    --text: #1c1b19;
+    --muted: #6f6d66;
+    --accent: #6c5ce0;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    --bg: #17161c;
+    --surface: #201f27;
+    --border: #333140;
+    --text: #eeecf5;
+    --muted: #9c99ab;
+    --accent: #a99bf5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17161c;
+      --surface: #201f27;
+      --border: #333140;
+      --text: #eeecf5;
+      --muted: #9c99ab;
+      --accent: #a99bf5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    padding: 40px 24px 64px;
+  }
+  .page {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .sub {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13.5px;
+    max-width: 62ch;
+    line-height: 1.55;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 24px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-meta {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .card-label {
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .subject-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .subject {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .preview-text {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .trigger {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .trigger code {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .frame-wrap {
+    background: repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--border) 40%, transparent),
+      color-mix(in srgb, var(--border) 40%, transparent) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  iframe {
+    width: 100%;
+    max-width: 460px;
+    height: 560px;
+    border: 0;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12);
+    background: #161826;
+  }
+  .note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 68ch;
+  }
+  .note b { color: var(--text); font-weight: 600; }
+</style>
+
+<div class="page">
+  <div class="page-header">
+    <span class="eyebrow">FG Hair Studio · src/emails</span>
+    <h1>Vista previa de los correos transaccionales</h1>
+    <p class="sub">
+      Renderizado real de los dos componentes React Email del proyecto, con datos de ejemplo.
+      Cada tarjeta va dentro de un iframe aislado para que el HTML de tabla que generan los
+      clientes de correo se vea exactamente como llegaría a una bandeja de entrada.
+    </p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-meta">
+        <span class="card-label">Confirmación de cita</span>
+        <div class="subject-row">
+          <span class="subject">Cita confirmada — jueves, 13 de agosto a las 10:00</span>
+          <span class="preview-text">Tu cita: jueves, 13 de agosto a las 10:00</span>
+        </div>
+        <span class="trigger">Se envía al llamar a <code>crearReserva()</code>, si el cliente dejó email.</span>
+      </div>
+      <div class="frame-wrap">
+        <iframe title="Confirmación de cita" id="frame-confirmacion"></iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-meta">
+        <span class="card-label">Recordatorio 24&nbsp;h</span>
+        <div class="subject-row">
+          <span class="subject">Recordatorio: tu cita es mañana</span>
+          <span class="preview-text">Recordatorio: mañana jueves, 13 de agosto a las 10:00</span>
+        </div>
+        <span class="trigger">Enviado por el cron <code>/api/cron/recordatorios</code>, una vez por reserva.</span>
+      </div>
+      <div class="frame-wrap">
+        <iframe title="Recordatorio de cita" id="frame-recordatorio"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">
+    <b>Por qué es tan sobrio:</b> los clientes de correo no soportan <code>mix-blend-mode</code>,
+    ni gradientes de fondo animados, ni <code>color-mix()</code> — así que solo se llevaron los
+    tokens de color base de Nocturne (fondo, superficie, texto, acento) a hex fijo, en un layout
+    de tabla de una sola columna. Es lo que realmente sobrevive en Gmail y Outlook.
+  </p>
+</div>
+
+<script>
+  document.getElementById('frame-confirmacion').srcdoc = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html dir=\"ltr\" lang=\"es\"><head><meta content=\"text/html; charset=UTF-8\" http-equiv=\"Content-Type\"/><meta name=\"x-apple-disable-message-reformatting\"/></head><body style=\"background-color:#161826;margin:0;padding:0\"><!--$--><!--html--><!--head--><div style=\"display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0\" data-skip-in-text=\"true\">Tu cita: jueves, 13 de agosto a las 10:00<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div></div><!--body--><table border=\"0\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" align=\"center\"><tbody><tr><td style=\"background-color:#161826;margin:0;padding:32px 0;font-family:-apple-system, Helvetica, Arial, sans-serif\"><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"max-width:420px;margin:0 auto;padding:0 20px\"><tbody><tr style=\"width:100%\"><td><p style=\"font-size:11px;line-height:24px;color:#9184d9;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;margin-top:0;margin-right:0;margin-bottom:8px;margin-left:0\">Francíso García Barbershop</p><h1 style=\"color:#e9e9ed;font-size:24px;font-weight:500;margin:0 0 20px\">Cita confirmada</h1><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"background-color:#232532;border-radius:14px;padding:20px\"><tbody><tr><td><p style=\"font-size:14px;line-height:24px;color:#e9e9ed;margin:0 0 14px;margin-top:0;margin-right:0;margin-bottom:14px;margin-left:0\">Hola <!-- -->Marc<!-- -->,</p><div style=\"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffffff14\"><span style=\"color:#9397ab;font-size:12px\">Cuándo</span><span style=\"color:#e9e9ed;font-size:13px;text-align:right\">jueves, 13 de agosto a las 10:00</span></div><div style=\"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffffff14\"><span style=\"color:#9397ab;font-size:12px\">Servicios</span><span style=\"color:#e9e9ed;font-size:13px;text-align:right\">Corte + Barba</span></div><div style=\"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffffff14\"><span style=\"color:#9397ab;font-size:12px\">Total</span><span style=\"color:#e9e9ed;font-size:13px;text-align:right\">13 €</span></div><div style=\"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffffff14\"><span style=\"color:#9397ab;font-size:12px\">Dónde</span><span style=\"color:#e9e9ed;font-size:13px;text-align:right\">Carrer exemple 24, baixos, 08003 Barcelona</span></div><p style=\"font-size:13px;line-height:24px;color:#e9e9ed;margin-top:16px;margin-bottom:16px\">Te escribiremos un recordatorio 24 h antes.<!-- --> <a href=\"https://fg-barbershop.vercel.app/reservar/confirmacion/xxxx\" style=\"color:#9184d9\">Gestionar mi cita</a></p></td></tr></tbody></table><p style=\"font-size:11px;line-height:24px;color:#9397ab;margin-top:24px;margin-bottom:16px\">Francíso García Barbershop · Carrer exemple 24, baixos, 08003 Barcelona</p></td></tr></tbody></table></td></tr></tbody></table><!--/$--></body></html>";
+  document.getElementById('frame-recordatorio').srcdoc = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html dir=\"ltr\" lang=\"es\"><head><meta content=\"text/html; charset=UTF-8\" http-equiv=\"Content-Type\"/><meta name=\"x-apple-disable-message-reformatting\"/></head><body style=\"background-color:#161826;margin:0;padding:0\"><!--$--><!--html--><!--head--><div style=\"display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0\" data-skip-in-text=\"true\">Recordatorio: mañana jueves, 13 de agosto a las 10:00<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div></div><!--body--><table border=\"0\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" align=\"center\"><tbody><tr><td style=\"background-color:#161826;margin:0;padding:32px 0;font-family:-apple-system, Helvetica, Arial, sans-serif\"><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"max-width:420px;margin:0 auto;padding:0 20px\"><tbody><tr style=\"width:100%\"><td><p style=\"font-size:11px;line-height:24px;color:#9184d9;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;margin-top:0;margin-right:0;margin-bottom:8px;margin-left:0\">Francíso García Barbershop</p><h1 style=\"color:#e9e9ed;font-size:24px;font-weight:500;margin:0 0 20px\">Tu cita es mañana</h1><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"background-color:#232532;border-radius:14px;padding:20px\"><tbody><tr><td><p style=\"font-size:14px;line-height:24px;color:#e9e9ed;margin:0 0 14px;margin-top:0;margin-right:0;margin-bottom:14px;margin-left:0\">Hola <!-- -->Marc<!-- -->, un recordatorio de tu cita:</p><div style=\"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffffff14\"><span style=\"color:#9397ab;font-size:12px\">Cuándo</span><span style=\"color:#e9e9ed;font-size:13px;text-align:right\">jueves, 13 de agosto a las 10:00</span></div><div style=\"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffffff14\"><span style=\"color:#9397ab;font-size:12px\">Servicios</span><span style=\"color:#e9e9ed;font-size:13px;text-align:right\">Corte + Barba</span></div><div style=\"display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ffffff14\"><span style=\"color:#9397ab;font-size:12px\">Dónde</span><span style=\"color:#e9e9ed;font-size:13px;text-align:right\">Carrer exemple 24, baixos, 08003 Barcelona</span></div><p style=\"font-size:13px;line-height:24px;color:#e9e9ed;margin-top:16px;margin-bottom:16px\">¿No puedes venir?<!-- --> <a href=\"https://fg-barbershop.vercel.app/reservar/confirmacion/xxxx\" style=\"color:#9184d9\">Cancela o reprograma aquí</a></p></td></tr></tbody></table><p style=\"font-size:11px;line-height:24px;color:#9397ab;margin-top:24px;margin-bottom:16px\">Francíso García Barbershop · Carrer exemple 24, baixos, 08003 Barcelona</p></td></tr></tbody></table></td></tr></tbody></table><!--/$--></body></html>";
+</script>
+
+<script>
+  document.getElementById('frame-confirmacion').srcdoc = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html dir=\"ltr\" lang=\"es\"><head><meta content=\"text/html; charset=UTF-8\" http-equiv=\"Content-Type\"/><meta name=\"x-apple-disable-message-reformatting\"/></head><body style=\"background-color:#161826;margin:0;padding:0\"><!--$--><!--html--><!--head--><div style=\"display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0\" data-skip-in-text=\"true\">Tu cita: jueves, 13 de agosto a las 10:00<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div></div><!--body--><table border=\"0\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" align=\"center\"><tbody><tr><td style=\"background-color:#161826;margin:0;padding:32px 0;font-family:-apple-system, Helvetica, Arial, sans-serif\"><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"max-width:420px;margin:0 auto;padding:0 20px\"><tbody><tr style=\"width:100%\"><td><p style=\"font-size:11px;line-height:24px;color:#9184d9;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;margin-top:0;margin-right:0;margin-bottom:8px;margin-left:0\">Francíso García Barbershop</p><h1 style=\"color:#e9e9ed;font-size:24px;font-weight:500;margin:0 0 20px\">Cita confirmada</h1><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"background-color:#232532;border-radius:14px;padding:20px\"><tbody><tr><td><p style=\"font-size:14px;line-height:24px;color:#e9e9ed;margin:0 0 14px;margin-top:0;margin-right:0;margin-bottom:14px;margin-left:0\">Hola <!-- -->Marc<!-- -->,</p><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Cuándo</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">jueves, 13 de agosto a las 10:00</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Servicios</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">Corte + Barba</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Total</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">13 €</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Dónde</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">Carrer exemple 24, baixos, 08003 Barcelona</td></tr></tbody></table><p style=\"font-size:13px;line-height:24px;color:#e9e9ed;margin-top:16px;margin-bottom:16px\">Te escribiremos un recordatorio 24 h antes.<!-- --> <a href=\"https://fg-barbershop.vercel.app/reservar/confirmacion/xxxx\" style=\"color:#9184d9\">Gestionar mi cita</a></p></td></tr></tbody></table><p style=\"font-size:11px;line-height:24px;color:#9397ab;margin-top:24px;margin-bottom:16px\">Francíso García Barbershop · Carrer exemple 24, baixos, 08003 Barcelona</p></td></tr></tbody></table></td></tr></tbody></table><!--/$--></body></html>";
+  document.getElementById('frame-recordatorio').srcdoc = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html dir=\"ltr\" lang=\"es\"><head><meta content=\"text/html; charset=UTF-8\" http-equiv=\"Content-Type\"/><meta name=\"x-apple-disable-message-reformatting\"/></head><body style=\"background-color:#161826;margin:0;padding:0\"><!--$--><!--html--><!--head--><div style=\"display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0\" data-skip-in-text=\"true\">Recordatorio: mañana jueves, 13 de agosto a las 10:00<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div></div><!--body--><table border=\"0\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" align=\"center\"><tbody><tr><td style=\"background-color:#161826;margin:0;padding:32px 0;font-family:-apple-system, Helvetica, Arial, sans-serif\"><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"max-width:420px;margin:0 auto;padding:0 20px\"><tbody><tr style=\"width:100%\"><td><p style=\"font-size:11px;line-height:24px;color:#9184d9;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;margin-top:0;margin-right:0;margin-bottom:8px;margin-left:0\">Francíso García Barbershop</p><h1 style=\"color:#e9e9ed;font-size:24px;font-weight:500;margin:0 0 20px\">Tu cita es mañana</h1><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"background-color:#232532;border-radius:14px;padding:20px\"><tbody><tr><td><p style=\"font-size:14px;line-height:24px;color:#e9e9ed;margin:0 0 14px;margin-top:0;margin-right:0;margin-bottom:14px;margin-left:0\">Hola <!-- -->Marc<!-- -->, un recordatorio de tu cita:</p><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Cuándo</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">jueves, 13 de agosto a las 10:00</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Servicios</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">Corte + Barba</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Dónde</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">Carrer exemple 24, baixos, 08003 Barcelona</td></tr></tbody></table><p style=\"font-size:13px;line-height:24px;color:#e9e9ed;margin-top:16px;margin-bottom:16px\">¿No puedes venir?<!-- --> <a href=\"https://fg-barbershop.vercel.app/reservar/confirmacion/xxxx\" style=\"color:#9184d9\">Cancela o reprograma aquí</a></p></td></tr></tbody></table><p style=\"font-size:11px;line-height:24px;color:#9397ab;margin-top:24px;margin-bottom:16px\">Francíso García Barbershop · Carrer exemple 24, baixos, 08003 Barcelona</p></td></tr></tbody></table></td></tr></tbody></table><!--/$--></body></html>";
+</script>
+
+<script>
+  document.getElementById('frame-confirmacion').srcdoc = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html dir=\"ltr\" lang=\"es\"><head><meta content=\"text/html; charset=UTF-8\" http-equiv=\"Content-Type\"/><meta name=\"x-apple-disable-message-reformatting\"/></head><body style=\"background-color:#161826;margin:0;padding:0\"><!--$--><!--html--><!--head--><div style=\"display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0\" data-skip-in-text=\"true\">Tu cita: jueves, 13 de agosto a las 10:00<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div></div><!--body--><table border=\"0\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" align=\"center\"><tbody><tr><td style=\"background-color:#161826;margin:0;padding:32px 0;font-family:-apple-system, Helvetica, Arial, sans-serif\"><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"max-width:420px;margin:0 auto;padding:0 20px\"><tbody><tr style=\"width:100%\"><td><p style=\"font-size:11px;line-height:24px;color:#9184d9;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;margin-top:0;margin-right:0;margin-bottom:8px;margin-left:0\">Francíso García Barbershop</p><h1 style=\"color:#e9e9ed;font-size:24px;font-weight:500;margin:0 0 20px\">Cita confirmada</h1><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"background-color:#232532;border-radius:14px;padding:20px\"><tbody><tr><td><p style=\"font-size:14px;line-height:24px;color:#e9e9ed;margin:0 0 14px;margin-top:0;margin-right:0;margin-bottom:14px;margin-left:0\">Hola <!-- -->Marc<!-- -->,</p><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Cuándo</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">jueves, 13 de agosto a las 10:00</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Servicios</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">Corte + Barba</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Total</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">13 €</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Dónde</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">Calle Carlos Cano, Niebla, Huelva, 21840</td></tr></tbody></table><p style=\"font-size:13px;line-height:24px;color:#e9e9ed;margin-top:16px;margin-bottom:16px\">Te escribiremos un recordatorio 24 h antes.<!-- --> <a href=\"https://fg-barbershop.vercel.app/reservar/confirmacion/xxxx\" style=\"color:#9184d9\">Gestionar mi cita</a></p></td></tr></tbody></table><p style=\"font-size:11px;line-height:24px;color:#9397ab;margin-top:24px;margin-bottom:16px\">Francíso García Barbershop<!-- --> · <!-- -->Calle Carlos Cano, Niebla, Huelva, 21840</p></td></tr></tbody></table></td></tr></tbody></table><!--/$--></body></html>";
+  document.getElementById('frame-recordatorio').srcdoc = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html dir=\"ltr\" lang=\"es\"><head><meta content=\"text/html; charset=UTF-8\" http-equiv=\"Content-Type\"/><meta name=\"x-apple-disable-message-reformatting\"/></head><body style=\"background-color:#161826;margin:0;padding:0\"><!--$--><!--html--><!--head--><div style=\"display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0\" data-skip-in-text=\"true\">Recordatorio: mañana jueves, 13 de agosto a las 10:00<div> ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿ ‌​‍‎‏﻿</div></div><!--body--><table border=\"0\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" align=\"center\"><tbody><tr><td style=\"background-color:#161826;margin:0;padding:32px 0;font-family:-apple-system, Helvetica, Arial, sans-serif\"><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"max-width:420px;margin:0 auto;padding:0 20px\"><tbody><tr style=\"width:100%\"><td><p style=\"font-size:11px;line-height:24px;color:#9184d9;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 8px;margin-top:0;margin-right:0;margin-bottom:8px;margin-left:0\">Francíso García Barbershop</p><h1 style=\"color:#e9e9ed;font-size:24px;font-weight:500;margin:0 0 20px\">Tu cita es mañana</h1><table align=\"center\" width=\"100%\" border=\"0\" cellPadding=\"0\" cellSpacing=\"0\" role=\"presentation\" style=\"background-color:#232532;border-radius:14px;padding:20px\"><tbody><tr><td><p style=\"font-size:14px;line-height:24px;color:#e9e9ed;margin:0 0 14px;margin-top:0;margin-right:0;margin-bottom:14px;margin-left:0\">Hola <!-- -->Marc<!-- -->, un recordatorio de tu cita:</p><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Cuándo</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">jueves, 13 de agosto a las 10:00</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Servicios</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">Corte + Barba</td></tr></tbody></table><table role=\"presentation\" width=\"100%\" cellPadding=\"0\" cellSpacing=\"0\" style=\"border-collapse:collapse\"><tbody><tr><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#9397ab;font-size:12px;text-align:left;vertical-align:top\">Dónde</td><td style=\"padding:6px 0;border-bottom:1px solid #ffffff14;color:#e9e9ed;font-size:13px;text-align:right;vertical-align:top\">Calle Carlos Cano, Niebla, Huelva, 21840</td></tr></tbody></table><p style=\"font-size:13px;line-height:24px;color:#e9e9ed;margin-top:16px;margin-bottom:16px\">¿No puedes venir?<!-- --> <a href=\"https://fg-barbershop.vercel.app/reservar/confirmacion/xxxx\" style=\"color:#9184d9\">Cancela o reprograma aquí</a></p></td></tr></tbody></table><p style=\"font-size:11px;line-height:24px;color:#9397ab;margin-top:24px;margin-bottom:16px\">Francíso García Barbershop<!-- --> · <!-- -->Calle Carlos Cano, Niebla, Huelva, 21840</p></td></tr></tbody></table></td></tr></tbody></table><!--/$--></body></html>";
+</script>
