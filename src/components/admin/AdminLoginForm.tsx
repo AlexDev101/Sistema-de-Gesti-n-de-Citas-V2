@@ -40,7 +40,12 @@ export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
   async function enviarCodigo() {
     setError(null);
     setEnviando(true);
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+    // Solo se permite crear cuenta durante el primer arranque, cuando aún nadie
+    // ha reclamado el panel. Antes iba fijo a true, así que cualquiera que
+    // escribiera un email aquí creaba una fila en auth.users: no era escalada
+    // de privilegios —reclamar_admin ya está reclamado— pero llenaba la tabla
+    // de cuentas sueltas que encima bloqueaban direcciones por el índice único.
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: necesitaClaim } });
     setEnviando(false);
     if (error) { setError(error.message); return; }
     setModo("otp-codigo");
