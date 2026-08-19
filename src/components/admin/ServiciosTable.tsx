@@ -25,6 +25,11 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
     await aplicar(actualizarServicio(id, cambios));
   }
 
+  // El asistente público agrupa por este texto, así que una errata crea un
+  // grupo nuevo en silencio. La lista sugiere las que ya existen sin impedir
+  // inventarse una.
+  const categorias = Array.from(new Set(servicios.map((s) => s.categoria))).sort();
+
   return (
     <div className="flex max-w-[860px] flex-col gap-3">
       <table className="table">
@@ -60,7 +65,23 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                   onBlur={(e) => e.target.value !== s.nombre && guardar(s.id, { nombre: e.target.value })}
                 />
               </td>
-              <td><span className="tag tag-neutral">{s.categoria}</span></td>
+              <td>
+                <input
+                  defaultValue={s.categoria}
+                  list="categorias-servicios"
+                  aria-label={`Categoría de ${s.nombre}`}
+                  className="input"
+                  style={{ minHeight: 30, width: 118, border: "1px solid transparent", background: "transparent" }}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (!v) {
+                      e.target.value = s.categoria;
+                      return;
+                    }
+                    if (v !== s.categoria) guardar(s.id, { categoria: v });
+                  }}
+                />
+              </td>
               <td>
                 <select
                   className="input"
@@ -118,6 +139,11 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
           ))}
         </tbody>
       </table>
+      <datalist id="categorias-servicios">
+        {categorias.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
       <button className="btn btn-secondary self-start" onClick={() => aplicar(crearServicio())}>
         Añadir servicio
       </button>
