@@ -14,6 +14,7 @@
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "@vercel/config": "^0.0.32",
+    "@vercel/functions": "^3.9.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",

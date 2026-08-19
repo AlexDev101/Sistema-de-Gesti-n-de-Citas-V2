@@ -1,5 +1,6 @@
 "use server";
 
+import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { getServiciosActivos } from "@/lib/data/servicios";
 import { enviarEmailConfirmacion } from "@/lib/actions/email-confirmacion";
@@ -37,10 +38,13 @@ export async function crearReservaAdmin(input: CrearReservaAdminInput): Promise<
 
   if (input.email) {
     // Best-effort, igual que en el flujo público: un fallo de email nunca
-    // debe deshacer una reserva ya confirmada en la base de datos.
-    enviarEmailConfirmacion(row.token, input.email).catch((err) => {
-      console.error("No se pudo enviar el email de confirmación:", err);
-    });
+    // debe deshacer una reserva ya confirmada en la base de datos. waitUntil
+    // evita que Vercel congele la función antes de que la petición a Resend salga.
+    waitUntil(
+      enviarEmailConfirmacion(row.token, input.email).catch((err) => {
+        console.error("No se pudo enviar el email de confirmación:", err);
+      })
+    );
   }
 
   return { ok: true, reservaId: row.reserva_id };

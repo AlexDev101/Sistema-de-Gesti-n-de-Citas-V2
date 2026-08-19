@@ -1,5 +1,6 @@
 "use server";
 
+import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { enviarEmailConfirmacion } from "@/lib/actions/email-confirmacion";
 
@@ -32,10 +33,13 @@ export async function crearReserva(input: CrearReservaInput): Promise<CrearReser
 
   if (input.email) {
     // Best-effort: un fallo de email nunca debe deshacer una reserva ya
-    // confirmada en la base de datos.
-    enviarEmailConfirmacion(row.token, input.email).catch((err) => {
-      console.error("No se pudo enviar el email de confirmación:", err);
-    });
+    // confirmada en la base de datos. waitUntil evita que Vercel congele la
+    // función serverless antes de que la petición HTTP a Resend salga.
+    waitUntil(
+      enviarEmailConfirmacion(row.token, input.email).catch((err) => {
+        console.error("No se pudo enviar el email de confirmación:", err);
+      })
+    );
   }
 
   return { ok: true, reservaId: row.reserva_id, token: row.token };
