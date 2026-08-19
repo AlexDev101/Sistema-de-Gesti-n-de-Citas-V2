@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ClienteResumen } from "@/lib/actions/admin-clientes";
 import { actualizarNotasCliente, getClientesResumen } from "@/lib/actions/admin-clientes";
+import { AvisoHost, useAviso } from "@/components/admin/Aviso";
 import { getReservasCliente, type ReservaAgenda } from "@/lib/actions/admin-agenda";
 import { eur } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -108,6 +109,7 @@ export function ClientesClient({ clientesIniciales }: { clientesIniciales: Clien
 
 function FichaCliente({ cliente, onClose, onSaved }: { cliente: ClienteResumen; onClose: () => void; onSaved: () => void }) {
   const [notas, setNotas] = useState(cliente.notas_internas ?? "");
+  const { aviso, guardando } = useAviso();
   const [historial, setHistorial] = useState<ReservaAgenda[] | null>(null);
 
   useEffect(() => {
@@ -132,7 +134,7 @@ function FichaCliente({ cliente, onClose, onSaved }: { cliente: ClienteResumen; 
         </div>
         <div className="field">
           <label>Notas internas</label>
-          <textarea className="input" value={notas} onChange={(e) => setNotas(e.target.value)} onBlur={() => actualizarNotasCliente(cliente.id, notas).then(onSaved)} />
+          <textarea className="input" value={notas} onChange={(e) => setNotas(e.target.value)} onBlur={async () => { if (await guardando(actualizarNotasCliente(cliente.id, notas))) onSaved(); }} />
         </div>
         <div className="flex flex-col gap-1.5">
           <h6 style={{ color: "color-mix(in srgb, var(--color-text) 50%, transparent)" }}>Historial</h6>
@@ -145,6 +147,7 @@ function FichaCliente({ cliente, onClose, onSaved }: { cliente: ClienteResumen; 
           {historial?.length === 0 && <span className="text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 40%, transparent)" }}>Sin citas todavía.</span>}
         </div>
       </div>
+      <AvisoHost aviso={aviso} />
     </div>
   );
 }

@@ -3,12 +3,19 @@
 import { useRouter } from "next/navigation";
 import type { Tables } from "@/lib/supabase/database.types";
 import { actualizarFranja, crearFranja, eliminarFranja } from "@/lib/actions/admin-horario";
+import { AvisoHost, useAviso } from "@/components/admin/Aviso";
+import type { Resultado } from "@/lib/actions/resultado";
 
 const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const ORDEN_VISUAL = [1, 2, 3, 4, 5, 6, 0];
 
 export function HorarioEditor({ franjas }: { franjas: Tables<"horario_barbero">[] }) {
   const router = useRouter();
+  const { aviso, guardando } = useAviso();
+
+  async function aplicar(accion: Promise<Resultado>) {
+    if (await guardando(accion)) router.refresh();
+  }
 
   return (
     <div className="grid max-w-[900px] grid-cols-2 gap-3.5 sm:grid-cols-3">
@@ -27,7 +34,7 @@ export function HorarioEditor({ franjas }: { franjas: Tables<"horario_barbero">[
                   defaultValue={f.abre.slice(0, 5)}
                   className="input"
                   style={{ minHeight: 30, fontSize: 12, padding: "4px 6px" }}
-                  onBlur={(e) => actualizarFranja(f.id, e.target.value, f.cierra.slice(0, 5)).then(() => router.refresh())}
+                  onBlur={(e) => aplicar(actualizarFranja(f.id, e.target.value, f.cierra.slice(0, 5)))}
                 />
                 <span className="text-[10px]" style={{ color: "color-mix(in srgb, var(--color-text) 40%, transparent)" }}>–</span>
                 <input
@@ -35,19 +42,20 @@ export function HorarioEditor({ franjas }: { franjas: Tables<"horario_barbero">[
                   defaultValue={f.cierra.slice(0, 5)}
                   className="input"
                   style={{ minHeight: 30, fontSize: 12, padding: "4px 6px" }}
-                  onBlur={(e) => actualizarFranja(f.id, f.abre.slice(0, 5), e.target.value).then(() => router.refresh())}
+                  onBlur={(e) => aplicar(actualizarFranja(f.id, f.abre.slice(0, 5), e.target.value))}
                 />
-                <button className="btn btn-icon btn-ghost" style={{ width: 26, height: 26 }} aria-label="Eliminar franja" onClick={() => eliminarFranja(f.id).then(() => router.refresh())}>
+                <button className="btn btn-icon btn-ghost" style={{ width: 26, height: 26 }} aria-label="Eliminar franja" onClick={() => aplicar(eliminarFranja(f.id))}>
                   ✕
                 </button>
               </div>
             ))}
-            <button className="btn btn-ghost self-start" style={{ fontSize: 11 }} onClick={() => crearFranja(dia).then(() => router.refresh())}>
+            <button className="btn btn-ghost self-start" style={{ fontSize: 11 }} onClick={() => aplicar(crearFranja(dia))}>
               + Añadir franja
             </button>
           </div>
         );
       })}
+      <AvisoHost aviso={aviso} />
     </div>
   );
 }

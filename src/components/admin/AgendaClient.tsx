@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AvisoHost, useAviso } from "@/components/admin/Aviso";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react/ssr";
 import {
   getReservasRango,
@@ -38,8 +39,8 @@ export function AgendaClient() {
   const [reservas, setReservas] = useState<ReservaAgenda[]>([]);
   const [ocupacionMes, setOcupacionMes] = useState<Map<string, { ocupados: number; cap: number }>>(new Map());
   const [seleccionada, setSeleccionada] = useState<ReservaAgenda | null>(null);
-  const [toast, setToast] = useState<{ msg: string; err?: boolean } | null>(null);
   const [cargando, setCargando] = useState(true);
+  const { aviso, avisar } = useAviso();
 
   const [anioMes, mesMes] = useMemo(() => {
     const [a, m] = fecha.split("-").map(Number);
@@ -78,11 +79,6 @@ export function AgendaClient() {
 
   useRealtimeDia(vista === "dia" ? fecha : null, recargar);
 
-  function toastear(msg: string, err = false) {
-    setToast({ msg, err });
-    setTimeout(() => setToast(null), 2600);
-  }
-
   async function onDrop(nuevoMin: number) {
     const id = dragId;
     if (!id) return;
@@ -90,15 +86,15 @@ export function AgendaClient() {
     if (!r) return;
     const duracion = r.servicios.reduce((a, s) => a + s.duracion_min, 0);
     if (nuevoMin < APERTURA_MIN || nuevoMin + duracion > CIERRE_MIN) {
-      toastear("Fuera de horario — la cita vuelve a su sitio", true);
+      avisar("Fuera de horario — la cita vuelve a su sitio", true);
       return;
     }
     const res = await reprogramarReserva(id, construirInicioMadrid(fecha, nuevoMin), duracion);
     if (!res.ok) {
-      toastear(res.error, true);
+      avisar(res.error, true);
       return;
     }
-    toastear("Cita movida");
+    avisar("Cita movida");
     recargar();
   }
 
@@ -272,15 +268,7 @@ export function AgendaClient() {
         )}
       </div>
 
-      {toast && (
-        <div
-          className="fixed bottom-[26px] left-1/2 z-[90] flex -translate-x-1/2 items-center gap-2.5 rounded-[var(--radius-md)] px-4 py-2.5 text-[13px]"
-          style={{ background: "var(--color-surface)", boxShadow: "var(--shadow-lg)", animation: "fgIn .2s ease both" }}
-        >
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: toast.err ? "var(--color-state-alta)" : "var(--color-state-libre)" }} />
-          {toast.msg}
-        </div>
-      )}
+      <AvisoHost aviso={aviso} />
     </div>
   );
 }

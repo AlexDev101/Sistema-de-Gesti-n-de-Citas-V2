@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { resultado } from "@/lib/actions/resultado";
 
 export type ReservaAgenda = {
   id: string;
@@ -71,24 +72,22 @@ export async function getReservasCliente(clienteId: string): Promise<ReservaAgen
 export async function reprogramarReserva(id: string, nuevoInicioISO: string, duracionMin: number) {
   const supabase = await createClient();
   const nuevoFin = new Date(new Date(nuevoInicioISO).getTime() + duracionMin * 60000).toISOString();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("reservas")
     .update({ inicio: nuevoInicioISO, fin: nuevoFin })
-    .eq("id", id);
-  if (error) return { ok: false as const, error: "Solape detectado — la cita vuelve a su sitio" };
-  return { ok: true as const };
+    .eq("id", id)
+    .select("id");
+  return resultado(error, data, "Solape detectado — la cita vuelve a su sitio");
 }
 
 export async function actualizarEstadoReserva(id: string, estado: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("reservas").update({ estado }).eq("id", id);
-  if (error) return { ok: false as const, error: error.message };
-  return { ok: true as const };
+  const { data, error } = await supabase.from("reservas").update({ estado }).eq("id", id).select("id");
+  return resultado(error, data);
 }
 
 export async function actualizarNotasReserva(id: string, notas: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("reservas").update({ notas }).eq("id", id);
-  if (error) return { ok: false as const, error: error.message };
-  return { ok: true as const };
+  const { data, error } = await supabase.from("reservas").update({ notas }).eq("id", id).select("id");
+  return resultado(error, data);
 }

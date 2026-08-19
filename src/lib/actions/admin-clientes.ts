@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { resultado } from "@/lib/actions/resultado";
 
 export type ClienteResumen = {
   id: string;
@@ -23,6 +24,6 @@ export async function getClientesResumen(): Promise<ClienteResumen[]> {
 
 export async function actualizarNotasCliente(id: string, notas: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("clientes").update({ notas_internas: notas }).eq("id", id);
-  return { ok: !error, error: error?.message };
+  const { data, error } = await supabase.from("clientes").update({ notas_internas: notas }).eq("id", id).select("id");
+  return resultado(error, data);
 }

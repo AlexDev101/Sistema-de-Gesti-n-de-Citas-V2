@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Configuracion } from "@/lib/data/negocio";
 import { actualizarConfiguracion } from "@/lib/actions/admin-ajustes";
+import { AvisoHost, useAviso } from "@/components/admin/Aviso";
 
 export function AjustesForm({ configuracion }: { configuracion: Configuracion }) {
   const [nombre, setNombre] = useState(configuracion.nombre_negocio);
@@ -14,19 +15,25 @@ export function AjustesForm({ configuracion }: { configuracion: Configuracion })
   const [politica, setPolitica] = useState(configuracion.politica_cancelacion);
   const [guardando, setGuardando] = useState(false);
   const [guardado, setGuardado] = useState(false);
+  const { aviso, guardando: conAviso } = useAviso();
 
   async function guardar() {
     setGuardando(true);
-    await actualizarConfiguracion(configuracion.id, {
-      nombre_negocio: nombre,
-      ciudad,
-      direccion,
-      telefono,
-      antelacion_min_horas: antMin,
-      antelacion_max_dias: antMax,
-      politica_cancelacion: politica,
-    });
+    // Solo se anuncia "Guardado" si de verdad se escribió: antes se mostraba
+    // igualmente aunque la escritura no hubiera tocado ninguna fila.
+    const ok = await conAviso(
+      actualizarConfiguracion(configuracion.id, {
+        nombre_negocio: nombre,
+        ciudad,
+        direccion,
+        telefono,
+        antelacion_min_horas: antMin,
+        antelacion_max_dias: antMax,
+        politica_cancelacion: politica,
+      })
+    );
     setGuardando(false);
+    if (!ok) return;
     setGuardado(true);
     setTimeout(() => setGuardado(false), 2000);
   }
@@ -64,6 +71,7 @@ export function AjustesForm({ configuracion }: { configuracion: Configuracion })
       <button className="btn btn-primary self-start" disabled={guardando} onClick={guardar}>
         {guardando ? "Guardando…" : guardado ? "Guardado" : "Guardar cambios"}
       </button>
+      <AvisoHost aviso={aviso} />
     </div>
   );
 }

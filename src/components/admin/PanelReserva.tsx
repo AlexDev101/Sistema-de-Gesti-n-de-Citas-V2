@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ReservaAgenda } from "@/lib/actions/admin-agenda";
 import { actualizarEstadoReserva, actualizarNotasReserva, getReservasCliente } from "@/lib/actions/admin-agenda";
+import { AvisoHost, useAviso } from "@/components/admin/Aviso";
 import { eur, durTxt } from "@/lib/format";
 import { ESTADO_COLOR, ESTADO_LABEL } from "@/lib/ocupacion";
 
@@ -23,6 +24,7 @@ export function PanelReserva({
   const [notas, setNotas] = useState(reserva.notas ?? "");
   const [historial, setHistorial] = useState<ReservaAgenda[] | null>(null);
   const duracion = reserva.servicios.reduce((a, s) => a + s.duracion_min, 0);
+  const { aviso, guardando } = useAviso();
 
   useEffect(() => {
     if (reserva.cliente) getReservasCliente(reserva.cliente.id).then(setHistorial);
@@ -68,8 +70,7 @@ export function PanelReserva({
             <button
               key={e}
               onClick={async () => {
-                await actualizarEstadoReserva(reserva.id, e);
-                onChanged();
+                if (await guardando(actualizarEstadoReserva(reserva.id, e))) onChanged();
               }}
               className="rounded-md px-2.5 py-1.5 text-[11px]"
               style={{
@@ -91,7 +92,7 @@ export function PanelReserva({
           style={{ minHeight: 76 }}
           value={notas}
           onChange={(e) => setNotas(e.target.value)}
-          onBlur={() => actualizarNotasReserva(reserva.id, notas)}
+          onBlur={() => guardando(actualizarNotasReserva(reserva.id, notas))}
         />
       </div>
 
@@ -104,6 +105,7 @@ export function PanelReserva({
           </div>
         ))}
       </div>
+      <AvisoHost aviso={aviso} />
     </aside>
   );
 }

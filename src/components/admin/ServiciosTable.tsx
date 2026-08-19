@@ -5,13 +5,24 @@ import { CaretUp, CaretDown } from "@phosphor-icons/react/ssr";
 import type { Servicio } from "@/lib/servicios-shared";
 import { durTxt } from "@/lib/format";
 import { actualizarServicio, crearServicio, duplicarServicio, moverServicio } from "@/lib/actions/admin-servicios";
+import { AvisoHost, useAviso } from "@/components/admin/Aviso";
+import type { Resultado } from "@/lib/actions/resultado";
+
+// La base exige que la duración cuadre con la rejilla de 30 min
+// (servicios_duracion_min_check), así que se ofrece una lista cerrada en vez
+// de un campo libre que acabaría en un error de constraint.
+const DURACIONES = [30, 60, 90, 120, 150, 180];
 
 export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
   const router = useRouter();
+  const { aviso, guardando } = useAviso();
+
+  async function aplicar(accion: Promise<Resultado>) {
+    if (await guardando(accion)) router.refresh();
+  }
 
   async function guardar(id: string, cambios: Parameters<typeof actualizarServicio>[1]) {
-    await actualizarServicio(id, cambios);
-    router.refresh();
+    await aplicar(actualizarServicio(id, cambios));
   }
 
   return (
@@ -33,10 +44,10 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
             <tr key={s.id}>
               <td>
                 <div className="flex gap-0.5">
-                  <button aria-label="Subir" disabled={i === 0} onClick={async () => { await moverServicio(s.id, s.orden, -1); router.refresh(); }}>
+                  <button aria-label="Subir" disabled={i === 0} onClick={() => aplicar(moverServicio(s.id, s.orden, -1))}>
                     <CaretUp size={12} />
                   </button>
-                  <button aria-label="Bajar" disabled={i === servicios.length - 1} onClick={async () => { await moverServicio(s.id, s.orden, 1); router.refresh(); }}>
+                  <button aria-label="Bajar" disabled={i === servicios.length - 1} onClick={() => aplicar(moverServicio(s.id, s.orden, 1))}>
                     <CaretDown size={12} />
                   </button>
                 </div>
@@ -50,16 +61,33 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                 />
               </td>
               <td><span className="tag tag-neutral">{s.categoria}</span></td>
-              <td>{durTxt(s.duracion_min)}</td>
+              <td>
+                <select
+                  className="input"
+                  aria-label={`Duración de ${s.nombre}`}
+                  value={s.duracion_min}
+                  style={{ minHeight: 30, width: 92, border: "1px solid transparent", background: "transparent" }}
+                  onChange={(e) => guardar(s.id, { duracion_min: Number(e.target.value) })}
+                >
+                  {(DURACIONES.includes(s.duracion_min) ? DURACIONES : [...DURACIONES, s.duracion_min].sort((a, b) => a - b)).map((d) => (
+                    <option key={d} value={d}>{durTxt(d)}</option>
+                  ))}
+                </select>
+              </td>
               <td>
                 <input
                   defaultValue={(s.precio_cents / 100).toString()}
                   type="number"
                   className="input"
                   style={{ minHeight: 30, width: 70, border: "1px solid transparent", background: "transparent" }}
+                  min={0}
                   onBlur={(e) => {
                     const cents = Math.round(Number(e.target.value) * 100);
-                    if (cents !== s.precio_cents && !Number.isNaN(cents)) guardar(s.id, { precio_cents: cents });
+                    if (Number.isNaN(cents) || cents < 0) {
+                      e.target.value = (s.precio_cents / 100).toString();
+                      return;
+                    }
+                    if (cents !== s.precio_cents) guardar(s.id, { precio_cents: cents });
                   }}
                 />
                 €
@@ -82,7 +110,7 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                 </button>
               </td>
               <td style={{ textAlign: "right" }}>
-                <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={async () => { await duplicarServicio(s.id); router.refresh(); }}>
+                <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => aplicar(duplicarServicio(s.id))}>
                   Duplicar
                 </button>
               </td>
@@ -90,9 +118,10 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
           ))}
         </tbody>
       </table>
-      <button className="btn btn-secondary self-start" onClick={async () => { await crearServicio(); router.refresh(); }}>
+      <button className="btn btn-secondary self-start" onClick={() => aplicar(crearServicio())}>
         Añadir servicio
       </button>
+      <AvisoHost aviso={aviso} />
     </div>
   );
 }
