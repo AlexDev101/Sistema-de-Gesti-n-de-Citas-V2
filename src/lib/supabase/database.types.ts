@@ -123,6 +123,21 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_secreto: {
+        Row: {
+          secreto: string
+          unico: boolean
+        }
+        Insert: {
+          secreto: string
+          unico?: boolean
+        }
+        Update: {
+          secreto?: string
+          unico?: boolean
+        }
+        Relationships: []
+      }
       horario_barbero: {
         Row: {
           abre: string
@@ -344,7 +359,15 @@ export type Database = {
         }[]
       }
       es_admin: { Args: never; Returns: boolean }
+      marcar_recordatorio_enviado: {
+        Args: { p_id: string; p_secret: string }
+        Returns: boolean
+      }
       obtener_reserva_por_token: { Args: { p_token: string }; Returns: Json }
+      reservas_pendientes_recordatorio: {
+        Args: { p_secret: string }
+        Returns: Json
+      }
       ocupacion_mes: {
         Args: { p_anio: number; p_mes: number }
         Returns: { fecha: string; ocupados: number; cap: number }[]

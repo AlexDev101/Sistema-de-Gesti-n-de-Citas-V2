@@ -1,59 +1,59 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { enviarRecordatorio } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
+type ReservaPendiente = {
+  id: string;
+  token: string;
+  inicio: string;
+  cliente_nombre: string;
+  cliente_email: string;
+  servicios: string | null;
+};
+
 // Vercel Cron llama a esta ruta (ver vercel.ts) con
-// `Authorization: Bearer $CRON_SECRET` cuando CRON_SECRET está configurada.
-// Recorre las reservas confirmadas que empiezan en las próximas ~24h y
-// todavía no tienen recordatorio_enviado_at.
+// `Authorization: Bearer $CRON_SECRET`. Ese mismo secreto viaja además a las
+// funciones SECURITY DEFINER del lado de Postgres, que son las que leen las
+// reservas saltando RLS — así esta ruta no necesita la service_role key.
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  if (secret && request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!secret) {
+    return NextResponse.json({ error: "Falta CRON_SECRET" }, { status: 500 });
+  }
+  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const supabase = createAdminClient();
-  const desde = new Date();
-  const hasta = new Date(desde.getTime() + 25 * 60 * 60 * 1000);
+  const supabase = await createClient();
 
-  const { data: reservas, error } = await supabase
-    .from("reservas")
-    .select("id, token, inicio, clientes(nombre, email), reserva_servicios(servicios(nombre))")
-    .eq("estado", "confirmada")
-    .is("recordatorio_enviado_at", null)
-    .gte("inicio", desde.toISOString())
-    .lte("inicio", hasta.toISOString());
-
+  const { data, error } = await supabase.rpc("reservas_pendientes_recordatorio", {
+    p_secret: secret,
+  });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const reservas = (data ?? []) as unknown as ReservaPendiente[];
 
   const { data: configuracion } = await supabase.from("configuracion").select("*").limit(1).maybeSingle();
   const origin = `https://${request.headers.get("host")}`;
 
   let enviados = 0;
-  for (const r of reservas ?? []) {
-    const cliente = r.clientes as unknown as { nombre: string; email: string | null } | null;
-    if (!cliente?.email) continue;
-    const servicios = (r.reserva_servicios as unknown as { servicios: { nombre: string } | null }[])
-      .map((rs) => rs.servicios?.nombre)
-      .filter(Boolean)
-      .join(", ");
-
+  for (const r of reservas) {
     const res = await enviarRecordatorio({
-      email: cliente.email,
-      nombreCliente: cliente.nombre,
+      email: r.cliente_email,
+      nombreCliente: r.cliente_nombre,
       cuando: new Date(r.inicio).toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Madrid" }),
-      servicios,
+      servicios: r.servicios ?? "",
       direccion: configuracion?.direccion ?? "",
       nombreNegocio: configuracion?.nombre_negocio ?? "FG Hair Studio",
       gestionUrl: `${origin}/reservar/confirmacion/${r.token}`,
     });
     if (res.ok) {
-      await supabase.from("reservas").update({ recordatorio_enviado_at: new Date().toISOString() }).eq("id", r.id);
+      await supabase.rpc("marcar_recordatorio_enviado", { p_secret: secret, p_id: r.id });
       enviados++;
     }
   }
 
-  return NextResponse.json({ ok: true, revisadas: reservas?.length ?? 0, enviados });
+  return NextResponse.json({ ok: true, revisadas: reservas.length, enviados });
 }
