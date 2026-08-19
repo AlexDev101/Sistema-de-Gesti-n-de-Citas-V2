@@ -7,6 +7,7 @@ import type { Servicio } from "@/lib/servicios-shared";
 import { agruparPorCategoria } from "@/lib/servicios-shared";
 import { durTxt, eur } from "@/lib/format";
 import { crearReserva } from "@/lib/actions/reservas";
+import { EMAIL_INVALIDO, emailValido } from "@/lib/validacion";
 import { useRealtimeDia } from "@/lib/useRealtimeDia";
 import { SelectorFechaHora, type SelectorFechaHoraHandle } from "@/components/shared/SelectorFechaHora";
 
@@ -65,6 +66,7 @@ export function WizardReserva({
 
   const nombreValido = nombre.trim().length > 1;
   const telefonoValido = telefono.trim().length > 5;
+  const emailOk = emailValido(email);
 
   async function confirmar() {
     setError(null);
@@ -91,7 +93,7 @@ export function WizardReserva({
   const nextDisabled =
     (paso === 1 && seleccion.length === 0) ||
     (paso === 2 && !hora) ||
-    (paso === 3 && (!nombreValido || !telefonoValido));
+    (paso === 3 && (!nombreValido || !telefonoValido || !emailOk));
 
   function next() {
     if (paso === 3) {
@@ -270,7 +272,20 @@ export function WizardReserva({
               </div>
               <div className="field">
                 <label>Email</label>
-                <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+                <input
+                  className="input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  inputMode="email"
+                  autoComplete="email"
+                  aria-invalid={!emailOk}
+                />
+                {!emailOk && (
+                  <p className="m-0 mt-1 text-[11px]" style={{ color: "var(--color-state-alta)" }}>
+                    {EMAIL_INVALIDO}
+                  </p>
+                )}
               </div>
             </div>
             {error && (
@@ -315,6 +330,10 @@ export function WizardReserva({
               },
               { k: "Nombre", v: nombre },
               { k: "Teléfono", v: telefono },
+              // El email decide si llegan la confirmación y el recordatorio,
+              // así que se muestra aquí para poder detectar una errata antes
+              // de confirmar.
+              { k: "Email", v: email.trim() || "Sin email" },
               { k: "Total", v: eur(precioTotal) },
             ].map((d) => (
               <div

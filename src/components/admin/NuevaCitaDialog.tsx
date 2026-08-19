@@ -5,6 +5,7 @@ import type { Servicio } from "@/lib/servicios-shared";
 import { durTxt, eur } from "@/lib/format";
 import { buscarClientePorTelefono, crearReservaAdmin, listarServiciosActivos } from "@/lib/actions/admin-reservas";
 import { SelectorFechaHora } from "@/components/shared/SelectorFechaHora";
+import { EMAIL_INVALIDO, emailValido } from "@/lib/validacion";
 
 export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; onCreada: () => void }) {
   const [servicios, setServicios] = useState<Servicio[] | null>(null);
@@ -59,7 +60,9 @@ export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; on
     onCreada();
   }
 
-  const puedeConfirmar = nombre.trim().length > 1 && telefono.trim().length > 5 && seleccion.length > 0 && !!hora;
+  const emailOk = emailValido(email);
+  const puedeConfirmar =
+    nombre.trim().length > 1 && telefono.trim().length > 5 && seleccion.length > 0 && !!hora && emailOk;
 
   return (
     <div className="dialog-backdrop" onClick={onClose}>
@@ -81,7 +84,19 @@ export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; on
             </div>
             <div className="field" style={{ flex: 1 }}>
               <label>Email (opcional)</label>
-              <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+              <input
+                className="input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                inputMode="email"
+                aria-invalid={!emailOk}
+              />
+              {!emailOk && (
+                <p className="m-0 mt-1 text-[11px]" style={{ color: "var(--color-state-alta)" }}>
+                  {EMAIL_INVALIDO}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -121,6 +136,9 @@ export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; on
               onFecha={setFecha}
               hora={hora}
               onHora={setHora}
+              // El admin atiende a quien entra por la puerta: puede reservar
+              // dentro de las 2 h que el flujo público exige.
+              respetarAntelacion={false}
             />
           )}
         </div>

@@ -24,8 +24,13 @@ export const SelectorFechaHora = forwardRef<
     hora: string | null;
     onHora: (h: string | null) => void;
     onSlotsChange?: (slots: string[] | null) => void;
+    /** El admin reserva sin antelación mínima; el público, no. */
+    respetarAntelacion?: boolean;
   }
->(function SelectorFechaHora({ duracionMin, fecha, onFecha, hora, onHora, onSlotsChange }, ref) {
+>(function SelectorFechaHora(
+  { duracionMin, fecha, onFecha, hora, onHora, onSlotsChange, respetarAntelacion = true },
+  ref
+) {
   const hoy = hoyMadridISO();
   const [hoyAnio, hoyMes] = useMemo(() => hoy.split("-").map(Number), [hoy]);
   const [anio, setAnio] = useState(hoyAnio);
@@ -35,14 +40,14 @@ export const SelectorFechaHora = forwardRef<
   const [cargandoSlots, setCargandoSlots] = useState(false);
 
   useEffect(() => {
-    obtenerOcupacionMes(anio, mes).then((rows) => {
+    obtenerOcupacionMes(anio, mes, respetarAntelacion).then((rows) => {
       setOcupacion(new Map(rows.map((r) => [r.fecha, { ocupados: r.ocupados, cap: r.cap }])));
     });
-  }, [anio, mes]);
+  }, [anio, mes, respetarAntelacion]);
 
   function cargarSlots() {
     if (!fecha || duracionMin === 0) return;
-    obtenerSlots(fecha, duracionMin)
+    obtenerSlots(fecha, duracionMin, respetarAntelacion)
       .then((s) => { setSlots(s); onSlotsChange?.(s); })
       .finally(() => setCargandoSlots(false));
   }

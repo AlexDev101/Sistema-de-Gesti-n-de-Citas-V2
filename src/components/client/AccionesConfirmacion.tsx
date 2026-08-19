@@ -4,6 +4,19 @@ function aICSFecha(iso: string): string {
   return new Date(iso).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 }
 
+// RFC 5545 §3.3.11: en un valor TEXT hay que escapar la barra invertida, el
+// punto y coma, la coma y los saltos de línea. Aquí importa de verdad: la
+// dirección lleva comas siempre, y DESCRIPTION las lleva en cuanto se reservan
+// dos servicios ("Corte, Barba"). Sin escapar, un cliente estricto parte el
+// valor y se pierde media línea.
+function aICSTexto(v: string): string {
+  return v
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r?\n/g, "\\n");
+}
+
 export function AccionesConfirmacion({
   titulo,
   descripcion,
@@ -32,9 +45,9 @@ export function AccionesConfirmacion({
       `DTSTAMP:${aICSFecha(new Date().toISOString())}`,
       `DTSTART:${aICSFecha(inicioISO)}`,
       `DTEND:${aICSFecha(finISO)}`,
-      `SUMMARY:${titulo}`,
-      `DESCRIPTION:${descripcion}`,
-      `LOCATION:${ubicacion}`,
+      `SUMMARY:${aICSTexto(titulo)}`,
+      `DESCRIPTION:${aICSTexto(descripcion)}`,
+      `LOCATION:${aICSTexto(ubicacion)}`,
       "END:VEVENT",
       "END:VCALENDAR",
     ].join("\r\n");

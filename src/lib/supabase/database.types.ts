@@ -369,13 +369,13 @@ export type Database = {
         Returns: Json
       }
       ocupacion_mes: {
-        Args: { p_anio: number; p_mes: number }
+        Args: { p_anio: number; p_mes: number; p_respetar_antelacion?: boolean }
         Returns: { fecha: string; ocupados: number; cap: number }[]
       }
       reclamar_admin: { Args: never; Returns: boolean }
       vincular_cliente_actual: { Args: never; Returns: boolean }
       slots_disponibles: {
-        Args: { p_duracion_min: number; p_fecha: string }
+        Args: { p_duracion_min: number; p_fecha: string; p_respetar_antelacion?: boolean }
         Returns: {
           inicio: string
         }[]

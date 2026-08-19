@@ -4,6 +4,7 @@ import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { getServiciosActivos } from "@/lib/data/servicios";
 import { enviarEmailConfirmacion } from "@/lib/actions/email-confirmacion";
+import { EMAIL_INVALIDO, emailValido } from "@/lib/validacion";
 
 export async function listarServiciosActivos() {
   return getServiciosActivos();
@@ -23,6 +24,8 @@ export type CrearReservaAdminResult =
   | { ok: false; error: string };
 
 export async function crearReservaAdmin(input: CrearReservaAdminInput): Promise<CrearReservaAdminResult> {
+  if (!emailValido(input.email)) return { ok: false, error: EMAIL_INVALIDO };
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_reserva_admin", {
     p_nombre: input.nombre,

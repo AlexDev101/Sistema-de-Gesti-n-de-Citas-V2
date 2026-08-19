@@ -141,6 +141,12 @@ figcaption { font-size: 11px; margin-top: var(--space-1); color: color-mix(in sr
 .btn-ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
 .btn-ghost:active:not(:disabled) { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
 .btn-icon { width: 36px; height: 36px; padding: 0; }
+/* En pantalla táctil 36px queda por debajo del mínimo recomendado de 44
+   (WCAG 2.5.5). Con ratón 36 se apunta de sobra, así que solo crece donde
+   el puntero es un dedo. */
+@media (pointer: coarse) {
+  .btn-icon { width: 44px; height: 44px; }
+}
 .btn-block { width: 100%; margin-top: var(--space-2); }
 
 /* — forms — */

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { cancelarReservaPorToken } from "@/lib/actions/reservas";
 
 export function CancelarReserva({ token, politica }: { token: string; politica: string }) {
@@ -8,6 +9,7 @@ export function CancelarReserva({ token, politica }: { token: string; politica: 
   const [cancelada, setCancelada] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enviando, startTransition] = useTransition();
+  const router = useRouter();
 
   if (cancelada) {
     return (
@@ -40,7 +42,13 @@ export function CancelarReserva({ token, politica }: { token: string; politica: 
           onClick={() =>
             startTransition(async () => {
               const res = await cancelarReservaPorToken(token);
-              if (res.ok) setCancelada(true);
+              if (res.ok) {
+                setCancelada(true);
+                // Sin esto la página sigue mostrando "Cita confirmada" con los
+                // botones de Google Calendar y .ics activos: son de un Server
+                // Component que no se entera del cambio de estado.
+                router.refresh();
+              }
               else setError(res.error);
             })
           }
