@@ -47,14 +47,19 @@ export function AgendaClient() {
     return [a, m];
   }, [fecha]);
 
+  // Una cita cancelada o "No asistido" desaparece de la agenda visible —
+  // sigue en el historial del cliente (getReservasCliente no filtra por
+  // estado), solo deja de ocupar hueco en el calendario del día a día.
+  const activas = (rs: ReservaAgenda[]) => rs.filter((r) => r.estado !== "cancelada" && r.estado !== "no_show");
+
   async function recargar() {
     setCargando(true);
     if (vista === "dia") {
       const { desde, hasta } = rangoDia(fecha);
-      setReservas(await getReservasRango(desde, hasta));
+      setReservas(activas(await getReservasRango(desde, hasta)));
     } else if (vista === "semana") {
       const { desde, hasta } = rangoSemana(fecha);
-      setReservas(await getReservasRango(desde, hasta));
+      setReservas(activas(await getReservasRango(desde, hasta)));
     } else {
       const { desde, hasta } = rangoMes(anioMes, mesMes);
       const [rows, filas] = await Promise.all([
@@ -62,7 +67,7 @@ export function AgendaClient() {
         getReservasRango(desde, hasta),
       ]);
       setOcupacionMes(new Map(rows.map((r) => [r.fecha, { ocupados: r.ocupados, cap: r.cap }])));
-      setReservas(filas);
+      setReservas(activas(filas));
     }
     setCargando(false);
   }

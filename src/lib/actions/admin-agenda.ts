@@ -44,6 +44,10 @@ function mapear(filas: Fila[]): ReservaAgenda[] {
   }));
 }
 
+// Devuelve todos los estados sin filtrar — Métricas necesita ver las
+// canceladas para poder contarlas (antes se descartaban aquí mismo, así que
+// esa cifra llevaba siempre a 0). Agenda, Hoy y demás vistas activas filtran
+// ellas mismas lo que no quieren ver.
 export async function getReservasRango(desdeISO: string, hastaISO: string): Promise<ReservaAgenda[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -51,7 +55,6 @@ export async function getReservasRango(desdeISO: string, hastaISO: string): Prom
     .select(SELECT_AGENDA)
     .gte("inicio", desdeISO)
     .lt("inicio", hastaISO)
-    .neq("estado", "cancelada")
     .order("inicio");
   if (error) throw error;
   return mapear(data as unknown as Fila[]);

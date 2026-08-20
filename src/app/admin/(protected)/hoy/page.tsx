@@ -12,7 +12,12 @@ export const revalidate = 0;
 export default async function HoyPage() {
   const hoy = hoyMadridISO();
   const { desde, hasta } = rangoDia(hoy);
-  const reservas = await getReservasRango(desde, hasta);
+  // Una cita cancelada o marcada "No asistido" sale de la vista del día,
+  // igual que ya pasaba con las canceladas — no cuenta para ingresos ni
+  // ocupación de hoy, y deja de ocupar sitio en la lista de check-in.
+  const reservas = (await getReservasRango(desde, hasta)).filter(
+    (r) => r.estado !== "cancelada" && r.estado !== "no_show"
+  );
 
   const ingresos = reservas.reduce((a, r) => a + r.precio_total_cents, 0);
   const slots = filasDia().filter((f) => !f.pausa).length;

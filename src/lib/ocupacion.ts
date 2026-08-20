@@ -75,10 +75,15 @@ export const LEYENDA_OCUPACION: Bucket[] = [
   bucket(100, 100), // completo
 ];
 
+// Vocabulario de cara al admin: lo que importa aquí es si el cliente se ha
+// presentado, no la mecánica interna de "confirmada"/"completada" — esos
+// nombres de columna no cambian en la base, solo cómo se leen en pantalla.
+// El cliente nunca ve estas etiquetas: su página de confirmación tiene las
+// suyas propias ("Cita confirmada"/"Cita realizada").
 export const ESTADO_LABEL: Record<string, string> = {
-  confirmada: "Confirmada",
-  completada: "Completada",
-  no_show: "No-show",
+  confirmada: "Pendiente",
+  completada: "Asistido",
+  no_show: "No asistido",
   cancelada: "Cancelada",
 };
 

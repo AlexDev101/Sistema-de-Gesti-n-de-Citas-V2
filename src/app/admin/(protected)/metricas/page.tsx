@@ -28,7 +28,11 @@ export default async function MetricasPage() {
 
   const mediaEstrellas = resenas.length ? resenas.reduce((a, r) => a + r.estrellas, 0) / resenas.length : 0;
 
-  const activas = reservas30.filter((r) => r.estado !== "cancelada");
+  // getReservasRango ya no filtra nada por su cuenta, así que "canceladas"
+  // por fin cuenta algo — antes esa fila salía siempre a 0 porque la
+  // consulta descartaba las canceladas antes de que este filtro las viera.
+  // Un "No asistido" tampoco es ingreso real: el cliente no llegó a pagar.
+  const activas = reservas30.filter((r) => r.estado !== "cancelada" && r.estado !== "no_show");
   const canceladas = reservas30.filter((r) => r.estado === "cancelada");
   const ingresos30 = activas.reduce((a, r) => a + r.precio_total_cents, 0);
   const ticketMedio = activas.length ? Math.round(ingresos30 / activas.length) : 0;
