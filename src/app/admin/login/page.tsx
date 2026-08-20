@@ -5,8 +5,7 @@ import { HalosMovil } from "@/components/ui/Halos";
 export const revalidate = 0;
 
 const MOTIVOS: Record<string, string> = {
-  enlace: "Ese enlace no era válido. Pide otro desde «He olvidado la contraseña».",
-  caducado: "El enlace ha caducado o ya se había usado. Pide otro desde «He olvidado la contraseña».",
+  caducado: "Ese enlace no era válido o ya se había usado. Pide otro desde «He olvidado la contraseña».",
 };
 
 export default async function AdminLoginPage({ searchParams }: PageProps<"/admin/login">) {

@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 // existe durante el primer arranque: mientras nadie ha reclamado el panel no
 // hay ninguna cuenta todavía, así que iniciar sesión con contraseña es
 // imposible y hace falta otra forma de crear al primer administrador.
-type Modo = "password" | "recuperar" | "otp-email" | "otp-codigo";
+type Modo = "password" | "recuperar" | "recuperar-codigo" | "otp-email" | "otp-codigo";
 
 export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boolean; motivo?: string }) {
   const router = useRouter();
@@ -47,14 +47,23 @@ export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boole
   async function enviarRecuperacion() {
     setError(null);
     setEnviando(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    });
+    // Sin redirectTo: la plantilla del correo ya fija el destino con
+    // {{ .SiteURL }}/auth/confirm, así que este parámetro no lo usa nadie.
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
     setEnviando(false);
     // Se responde igual haya cuenta o no: decir "ese email no existe" permite
     // averiguar desde fuera qué direcciones tienen acceso al panel.
     if (error) { setError(error.message); return; }
     setEnviado(true);
+  }
+
+  async function verificarCodigoRecuperacion() {
+    setError(null);
+    setEnviando(true);
+    const { error: errOtp } = await supabase.auth.verifyOtp({ email, token: codigo, type: "recovery" });
+    setEnviando(false);
+    if (errOtp) { setError(errOtp.message); return; }
+    router.push("/admin/nueva-password");
   }
 
   async function enviarCodigo() {
@@ -123,9 +132,18 @@ export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boole
       {modo === "recuperar" && (
         <div className="flex flex-col gap-2.5">
           {enviado ? (
-            <p className="m-0 text-[13px]" style={{ color: "var(--color-accent-300)" }}>
-              Si esa dirección tiene acceso, le llega un enlace para elegir una contraseña nueva.
-            </p>
+            <>
+              <p className="m-0 text-[13px]" style={{ color: "var(--color-accent-300)" }}>
+                Si esa dirección tiene acceso, le llega un enlace para elegir una contraseña nueva.
+              </p>
+              <button
+                className="btn btn-ghost self-center"
+                style={{ fontSize: 12 }}
+                onClick={() => { setError(null); setCodigo(""); setModo("recuperar-codigo"); }}
+              >
+                O introduce el código del correo
+              </button>
+            </>
           ) : (
             <>
               <div className="field">
@@ -137,6 +155,21 @@ export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boole
               </button>
             </>
           )}
+          <button className="btn btn-ghost self-center" style={{ fontSize: 12 }} onClick={() => { setError(null); setModo("password"); }}>
+            Volver
+          </button>
+        </div>
+      )}
+
+      {modo === "recuperar-codigo" && (
+        <div className="flex flex-col gap-2.5">
+          <div className="field">
+            <label>Código recibido en {email}</label>
+            <input className="input" value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="12345678" />
+          </div>
+          <button className="btn btn-primary btn-block" disabled={enviando || codigo.length < 4} onClick={verificarCodigoRecuperacion}>
+            {enviando ? "Comprobando…" : "Entrar"}
+          </button>
           <button className="btn btn-ghost self-center" style={{ fontSize: 12 }} onClick={() => { setError(null); setModo("password"); }}>
             Volver
           </button>
