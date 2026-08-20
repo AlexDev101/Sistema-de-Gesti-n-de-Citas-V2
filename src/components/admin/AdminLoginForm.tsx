@@ -4,12 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+// El acceso normal es email + contraseña, sin más. El camino por código solo
+// existe durante el primer arranque: mientras nadie ha reclamado el panel no
+// hay ninguna cuenta todavía, así que iniciar sesión con contraseña es
+// imposible y hace falta otra forma de crear al primer administrador.
 type Modo = "password" | "otp-email" | "otp-codigo";
 
 export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
   const router = useRouter();
   const supabase = createClient();
-  const [modo, setModo] = useState<Modo>("password");
+  const [modo, setModo] = useState<Modo>(necesitaClaim ? "otp-email" : "password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [codigo, setCodigo] = useState("");
@@ -77,7 +81,7 @@ export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
         </span>
       </div>
 
-      {modo === "password" && (
+      {modo === "password" && !necesitaClaim && (
         <div className="flex flex-col gap-2.5">
           <div className="field">
             <label>Email</label>
@@ -90,13 +94,10 @@ export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
           <button className="btn btn-primary btn-block" disabled={enviando || !email.includes("@") || !password} onClick={entrarConPassword}>
             {enviando ? "Entrando…" : "Entrar"}
           </button>
-          <button className="btn btn-ghost self-center" style={{ fontSize: 12 }} onClick={() => { setError(null); setModo("otp-email"); }}>
-            O recibe un código por email
-          </button>
         </div>
       )}
 
-      {modo === "otp-email" && (
+      {modo === "otp-email" && necesitaClaim && (
         <div className="flex flex-col gap-2.5">
           <div className="field">
             <label>Email</label>
@@ -105,13 +106,10 @@ export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
           <button className="btn btn-primary btn-block" disabled={enviando || !email.includes("@")} onClick={enviarCodigo}>
             {enviando ? "Enviando…" : "Enviar código"}
           </button>
-          <button className="btn btn-ghost self-center" style={{ fontSize: 12 }} onClick={() => { setError(null); setModo("password"); }}>
-            Volver a contraseña
-          </button>
         </div>
       )}
 
-      {modo === "otp-codigo" && (
+      {modo === "otp-codigo" && necesitaClaim && (
         <div className="flex flex-col gap-2.5">
           <div className="field">
             <label>Código recibido en {email}</label>
