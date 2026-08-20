@@ -4,13 +4,20 @@ import { HalosMovil } from "@/components/ui/Halos";
 
 export const revalidate = 0;
 
-export default async function AdminLoginPage() {
+const MOTIVOS: Record<string, string> = {
+  enlace: "Ese enlace no era válido. Pide otro desde «He olvidado la contraseña».",
+  caducado: "El enlace ha caducado o ya se había usado. Pide otro desde «He olvidado la contraseña».",
+};
+
+export default async function AdminLoginPage({ searchParams }: PageProps<"/admin/login">) {
   const barbero = await getBarbero();
+  const { error } = await searchParams;
+  const motivo = typeof error === "string" ? MOTIVOS[error] : undefined;
   return (
     <div className="relative flex min-h-dvh items-center justify-center overflow-hidden" style={{ background: "var(--color-bg)" }}>
       <HalosMovil />
       <div className="relative z-[1]">
-        <AdminLoginForm necesitaClaim={!barbero?.user_id} />
+        <AdminLoginForm necesitaClaim={!barbero?.user_id} motivo={motivo} />
       </div>
     </div>
   );

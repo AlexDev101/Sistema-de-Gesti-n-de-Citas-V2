@@ -8,9 +8,9 @@ import { createClient } from "@/lib/supabase/client";
 // existe durante el primer arranque: mientras nadie ha reclamado el panel no
 // hay ninguna cuenta todavía, así que iniciar sesión con contraseña es
 // imposible y hace falta otra forma de crear al primer administrador.
-type Modo = "password" | "otp-email" | "otp-codigo";
+type Modo = "password" | "recuperar" | "otp-email" | "otp-codigo";
 
-export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
+export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boolean; motivo?: string }) {
   const router = useRouter();
   const supabase = createClient();
   const [modo, setModo] = useState<Modo>(necesitaClaim ? "otp-email" : "password");
@@ -18,7 +18,10 @@ export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
   const [password, setPassword] = useState("");
   const [codigo, setCodigo] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // `motivo` explica por qué te devolvió aquí el callback; se descarta en
+  // cuanto el formulario tiene algo propio que decir.
+  const [error, setError] = useState<string | null>(motivo ?? null);
+  const [enviado, setEnviado] = useState(false);
 
   async function entrarConPanel() {
     const { data: esAdmin } = await supabase.rpc("es_admin");
@@ -39,6 +42,19 @@ export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
     if (errLogin) { setEnviando(false); setError(errLogin.message); return; }
     await entrarConPanel();
     setEnviando(false);
+  }
+
+  async function enviarRecuperacion() {
+    setError(null);
+    setEnviando(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    });
+    setEnviando(false);
+    // Se responde igual haya cuenta o no: decir "ese email no existe" permite
+    // averiguar desde fuera qué direcciones tienen acceso al panel.
+    if (error) { setError(error.message); return; }
+    setEnviado(true);
   }
 
   async function enviarCodigo() {
@@ -93,6 +109,36 @@ export function AdminLoginForm({ necesitaClaim }: { necesitaClaim: boolean }) {
           </div>
           <button className="btn btn-primary btn-block" disabled={enviando || !email.includes("@") || !password} onClick={entrarConPassword}>
             {enviando ? "Entrando…" : "Entrar"}
+          </button>
+          <button
+            className="btn btn-ghost self-center"
+            style={{ fontSize: 12 }}
+            onClick={() => { setError(null); setEnviado(false); setModo("recuperar"); }}
+          >
+            He olvidado la contraseña
+          </button>
+        </div>
+      )}
+
+      {modo === "recuperar" && (
+        <div className="flex flex-col gap-2.5">
+          {enviado ? (
+            <p className="m-0 text-[13px]" style={{ color: "var(--color-accent-300)" }}>
+              Si esa dirección tiene acceso, le llega un enlace para elegir una contraseña nueva.
+            </p>
+          ) : (
+            <>
+              <div className="field">
+                <label>Email</label>
+                <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+              </div>
+              <button className="btn btn-primary btn-block" disabled={enviando || !email.includes("@")} onClick={enviarRecuperacion}>
+                {enviando ? "Enviando…" : "Enviar enlace"}
+              </button>
+            </>
+          )}
+          <button className="btn btn-ghost self-center" style={{ fontSize: 12 }} onClick={() => { setError(null); setModo("password"); }}>
+            Volver
           </button>
         </div>
       )}
