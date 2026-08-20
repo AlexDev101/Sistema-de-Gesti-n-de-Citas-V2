@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle, XCircle } from "@phosphor-icons/react/ssr";
+import { CalendarBlank, CheckCircle, Scissors, XCircle } from "@phosphor-icons/react/ssr";
 import { obtenerReservaPorToken } from "@/lib/actions/reservas";
 import { getConfiguracion } from "@/lib/data/negocio";
 import { Confetti } from "@/components/client/Confetti";
@@ -31,34 +31,48 @@ export default async function ConfirmacionPage({
   const completada = reserva.estado === "completada";
 
   return (
-    <div className="relative flex min-h-dvh flex-col justify-center gap-[22px] overflow-hidden px-6 pt-[env(safe-area-inset-top)] pb-[60px]">
+    <div className="relative flex min-h-dvh flex-col justify-center gap-6 overflow-hidden px-6 pt-[env(safe-area-inset-top)] pb-[60px]">
       {!cancelada && <Confetti />}
       <div
-        className="grid h-14 w-14 place-items-center rounded-full"
+        className="grid h-16 w-16 place-items-center rounded-full"
         style={{
-          border: `1px solid ${cancelada ? "color-mix(in srgb, var(--color-text) 40%, transparent)" : "var(--color-accent)"}`,
+          background: cancelada
+            ? "color-mix(in srgb, var(--color-text) 10%, transparent)"
+            : "color-mix(in srgb, var(--color-accent) 16%, transparent)",
           color: cancelada ? "color-mix(in srgb, var(--color-text) 55%, transparent)" : "var(--color-accent)",
         }}
       >
-        {cancelada ? <XCircle size={26} weight="regular" /> : <CheckCircle size={26} weight="regular" />}
+        {cancelada ? <XCircle size={30} weight="regular" /> : <CheckCircle size={30} weight="fill" />}
       </div>
-      <div>
-        <h3 className="mb-2">{cancelada ? "Cita cancelada" : completada ? "Cita realizada" : "Cita confirmada"}</h3>
-        <p
-          className="m-0 text-sm leading-relaxed"
-          style={{ color: "color-mix(in srgb, var(--color-text) 65%, transparent)" }}
+
+      <div className="flex flex-col gap-4">
+        <h3 className="m-0">{cancelada ? "Cita cancelada" : completada ? "Cita realizada" : "Cita confirmada"}</h3>
+
+        <div
+          className="flex flex-col gap-3 rounded-[var(--radius-lg)] p-4"
+          style={{ background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}
         >
-          {cuando}
-          <br />
-          {serviciosTxt}
-          <br />
-          {config?.nombre_negocio}
-        </p>
+          <div className="flex items-center gap-2.5">
+            <CalendarBlank size={17} color={cancelada ? "color-mix(in srgb, var(--color-text) 45%, transparent)" : "var(--color-accent)"} />
+            <span className="text-sm">{cuando}</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Scissors size={17} color={cancelada ? "color-mix(in srgb, var(--color-text) 45%, transparent)" : "var(--color-accent)"} />
+            <span className="text-sm">{serviciosTxt}</span>
+          </div>
+        </div>
+
+        {config?.nombre_negocio && (
+          <span className="text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 45%, transparent)" }}>
+            {config.nombre_negocio}
+          </span>
+        )}
       </div>
+
       {/* Una cita ya realizada no se puede cancelar ni tiene sentido añadirla
           al calendario — en su lugar se pide la valoración. */}
       {completada ? (
-        <DejarResena token={token} yaValorada={reserva.resena !== null} />
+        <DejarResena token={token} resenaExistente={reserva.resena} />
       ) : (
         !cancelada && (
           <div className="flex flex-col gap-2">
