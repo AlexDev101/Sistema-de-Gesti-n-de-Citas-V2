@@ -27,3 +27,19 @@ export async function actualizarNotasCliente(id: string, notas: string) {
   const { data, error } = await supabase.from("clientes").update({ notas_internas: notas }).eq("id", id).select("id");
   return resultado(error, data);
 }
+
+export type FidelizacionCliente = { cliente_id: string; sellos_disponibles: number; puede_canjear: boolean };
+
+export async function getFidelizacionClientes(): Promise<FidelizacionCliente[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("fidelizacion_clientes");
+  if (error) throw error;
+  return data;
+}
+
+export async function canjearFidelizacion(clienteId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("canjear_fidelizacion", { p_cliente_id: clienteId });
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const };
+}

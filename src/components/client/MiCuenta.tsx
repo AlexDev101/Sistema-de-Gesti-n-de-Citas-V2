@@ -24,6 +24,7 @@ export function MiCuenta() {
   const [error, setError] = useState<string | null>(null);
   const [reservas, setReservas] = useState<ReservaFila[] | null>(null);
   const [clienteNombre, setClienteNombre] = useState<string | null>(null);
+  const [fidelizacion, setFidelizacion] = useState<{ sellos_disponibles: number; puede_canjear: boolean } | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -53,6 +54,9 @@ export function MiCuenta() {
         .eq("cliente_id", cliente.id)
         .order("inicio", { ascending: false });
       setReservas((data as unknown as ReservaFila[]) ?? []);
+
+      const { data: fid } = await supabase.rpc("mi_fidelizacion");
+      setFidelizacion(fid as { sellos_disponibles: number; puede_canjear: boolean } | null);
     })();
   }, [user, supabase]);
 
@@ -146,6 +150,40 @@ export function MiCuenta() {
         <span className="text-sm" style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>Cargando tus citas…</span>
       ) : (
         <>
+          {fidelizacion && (
+            <div
+              className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] p-3.5"
+              style={{ background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm" style={{ fontFamily: "var(--font-heading)" }}>
+                  {fidelizacion.puede_canjear
+                    ? "¡Tienes un corte gratis! Coméntaselo a Francíso en tu próxima visita."
+                    : `${fidelizacion.sellos_disponibles}/10 sellos`}
+                </span>
+                {!fidelizacion.puede_canjear && (
+                  <span className="text-[11px]" style={{ color: "color-mix(in srgb, var(--color-text) 50%, transparent)" }}>
+                    Te faltan {10 - fidelizacion.sellos_disponibles} visitas para un corte gratis
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-1">
+                {Array.from({ length: 10 }, (_, i) => (
+                  <span
+                    key={i}
+                    className="h-2 w-2 rounded-full"
+                    style={{
+                      background:
+                        i < Math.min(fidelizacion.sellos_disponibles, 10)
+                          ? "var(--color-accent)"
+                          : "color-mix(in srgb, var(--color-text) 20%, transparent)",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <h6 style={{ color: "color-mix(in srgb, var(--color-text) 50%, transparent)" }}>Próxima cita</h6>
             {proxima ? (

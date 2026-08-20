@@ -6,6 +6,7 @@ import { getConfiguracion } from "@/lib/data/negocio";
 import { Confetti } from "@/components/client/Confetti";
 import { AccionesConfirmacion } from "@/components/client/AccionesConfirmacion";
 import { CancelarReserva } from "@/components/client/CancelarReserva";
+import { DejarResena } from "@/components/client/DejarResena";
 
 export const revalidate = 0;
 
@@ -27,6 +28,7 @@ export default async function ConfirmacionPage({
   });
 
   const cancelada = reserva.estado === "cancelada";
+  const completada = reserva.estado === "completada";
 
   return (
     <div className="relative flex min-h-dvh flex-col justify-center gap-[22px] overflow-hidden px-6 pt-[env(safe-area-inset-top)] pb-[60px]">
@@ -41,7 +43,7 @@ export default async function ConfirmacionPage({
         {cancelada ? <XCircle size={26} weight="regular" /> : <CheckCircle size={26} weight="regular" />}
       </div>
       <div>
-        <h3 className="mb-2">{cancelada ? "Cita cancelada" : "Cita confirmada"}</h3>
+        <h3 className="mb-2">{cancelada ? "Cita cancelada" : completada ? "Cita realizada" : "Cita confirmada"}</h3>
         <p
           className="m-0 text-sm leading-relaxed"
           style={{ color: "color-mix(in srgb, var(--color-text) 65%, transparent)" }}
@@ -53,22 +55,28 @@ export default async function ConfirmacionPage({
           {config?.nombre_negocio}
         </p>
       </div>
-      {!cancelada && (
-        <div className="flex flex-col gap-2">
-          <Link href="/cuenta" className="btn btn-primary btn-block" style={{ height: 44 }}>
-            Ver en mi cuenta
-          </Link>
-          <AccionesConfirmacion
-            titulo={`Cita en ${config?.nombre_negocio ?? "FG Hair Studio"}`}
-            descripcion={serviciosTxt}
-            ubicacion={config?.direccion ?? ""}
-            inicioISO={reserva.inicio}
-            finISO={reserva.fin}
-          />
-          <CancelarReserva token={token} politica={config?.politica_cancelacion ?? ""} />
-        </div>
+      {/* Una cita ya realizada no se puede cancelar ni tiene sentido añadirla
+          al calendario — en su lugar se pide la valoración. */}
+      {completada ? (
+        <DejarResena token={token} yaValorada={reserva.resena !== null} />
+      ) : (
+        !cancelada && (
+          <div className="flex flex-col gap-2">
+            <Link href="/cuenta" className="btn btn-primary btn-block" style={{ height: 44 }}>
+              Ver en mi cuenta
+            </Link>
+            <AccionesConfirmacion
+              titulo={`Cita en ${config?.nombre_negocio ?? "FG Hair Studio"}`}
+              descripcion={serviciosTxt}
+              ubicacion={config?.direccion ?? ""}
+              inicioISO={reserva.inicio}
+              finISO={reserva.fin}
+            />
+            <CancelarReserva token={token} politica={config?.politica_cancelacion ?? ""} />
+          </div>
+        )
       )}
-      {!cancelada && (
+      {!cancelada && !completada && (
         <p className="m-0 text-[11px]" style={{ color: "color-mix(in srgb, var(--color-text) 40%, transparent)" }}>
           Te enviamos la confirmación por email y un recordatorio 24 h antes.
         </p>

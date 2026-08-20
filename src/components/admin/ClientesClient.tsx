@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ClienteResumen } from "@/lib/actions/admin-clientes";
-import { actualizarNotasCliente, getClientesResumen } from "@/lib/actions/admin-clientes";
+import type { ClienteResumen, FidelizacionCliente } from "@/lib/actions/admin-clientes";
+import { actualizarNotasCliente, canjearFidelizacion, getClientesResumen, getFidelizacionClientes } from "@/lib/actions/admin-clientes";
 import { AvisoHost, useAviso } from "@/components/admin/Aviso";
 import { getReservasCliente, type ReservaAgenda } from "@/lib/actions/admin-agenda";
 import { eur } from "@/lib/format";
@@ -10,11 +10,20 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const SEGMENTOS = ["Todos", "VIP", "Recurrente", "Nuevo", "En riesgo"];
 
-export function ClientesClient({ clientesIniciales }: { clientesIniciales: ClienteResumen[] }) {
+export function ClientesClient({
+  clientesIniciales,
+  fidelizacionInicial,
+}: {
+  clientesIniciales: ClienteResumen[];
+  fidelizacionInicial: FidelizacionCliente[];
+}) {
   const [clientes, setClientes] = useState(clientesIniciales);
+  const [fidelizacion, setFidelizacion] = useState(fidelizacionInicial);
   const [query, setQuery] = useState("");
   const [segmento, setSegmento] = useState("Todos");
   const [abierto, setAbierto] = useState<ClienteResumen | null>(null);
+
+  const sellosDe = (clienteId: string) => fidelizacion.find((f) => f.cliente_id === clienteId);
 
   const filtrados = useMemo(
     () =>
@@ -78,7 +87,7 @@ export function ClientesClient({ clientesIniciales }: { clientesIniciales: Clien
         <table className="table" style={{ minWidth: 760 }}>
           <thead>
             <tr>
-              <th>Cliente</th><th>Teléfono</th><th>Visitas</th><th>Última visita</th><th>Gasto total</th><th>Segmento</th>
+              <th>Cliente</th><th>Teléfono</th><th>Visitas</th><th>Última visita</th><th>Gasto total</th><th>Segmento</th><th>Fidelización</th>
             </tr>
           </thead>
           <tbody>
@@ -90,6 +99,15 @@ export function ClientesClient({ clientesIniciales }: { clientesIniciales: Clien
                 <td>{c.ultima_visita ? new Date(c.ultima_visita).toLocaleDateString("es-ES", { timeZone: "Europe/Madrid" }) : "—"}</td>
                 <td>{eur(c.gasto_total_cents)}</td>
                 <td><span className="tag tag-accent">{c.segmento}</span></td>
+                <td>
+                  {sellosDe(c.id)?.puede_canjear ? (
+                    <span className="tag tag-accent">Premio listo</span>
+                  ) : (
+                    <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
+                      {sellosDe(c.id)?.sellos_disponibles ?? 0}/10
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -99,15 +117,30 @@ export function ClientesClient({ clientesIniciales }: { clientesIniciales: Clien
       {abierto && (
         <FichaCliente
           cliente={abierto}
+          fidelizacion={sellosDe(abierto.id) ?? { cliente_id: abierto.id, sellos_disponibles: 0, puede_canjear: false }}
           onClose={() => setAbierto(null)}
-          onSaved={async () => setClientes(await getClientesResumen())}
+          onSaved={async () => {
+            const [c, f] = await Promise.all([getClientesResumen(), getFidelizacionClientes()]);
+            setClientes(c);
+            setFidelizacion(f);
+          }}
         />
       )}
     </div>
   );
 }
 
-function FichaCliente({ cliente, onClose, onSaved }: { cliente: ClienteResumen; onClose: () => void; onSaved: () => void }) {
+function FichaCliente({
+  cliente,
+  fidelizacion,
+  onClose,
+  onSaved,
+}: {
+  cliente: ClienteResumen;
+  fidelizacion: FidelizacionCliente;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
   const [notas, setNotas] = useState(cliente.notas_internas ?? "");
   const { aviso, guardando } = useAviso();
   const [historial, setHistorial] = useState<ReservaAgenda[] | null>(null);
@@ -132,6 +165,27 @@ function FichaCliente({ cliente, onClose, onSaved }: { cliente: ClienteResumen; 
           <span className="tag tag-neutral">{cliente.visitas} visitas</span>
           <span className="tag tag-neutral">{eur(cliente.gasto_total_cents)}</span>
         </div>
+
+        <div className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] p-3" style={{ background: "var(--color-bg)" }}>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>Fidelización</span>
+            <span className="text-sm">
+              {Math.min(fidelizacion.sellos_disponibles, 10)}/10 sellos
+              {fidelizacion.sellos_disponibles > 10 && ` (+${fidelizacion.sellos_disponibles - 10} de premios anteriores)`}
+            </span>
+          </div>
+          <button
+            className="btn btn-secondary"
+            style={{ fontSize: 12 }}
+            disabled={!fidelizacion.puede_canjear}
+            onClick={async () => {
+              if (await guardando(canjearFidelizacion(cliente.id), "Premio canjeado")) onSaved();
+            }}
+          >
+            Canjear premio
+          </button>
+        </div>
+
         <div className="field">
           <label>Notas internas</label>
           <textarea className="input" value={notas} onChange={(e) => setNotas(e.target.value)} onBlur={async () => { if (await guardando(actualizarNotasCliente(cliente.id, notas))) onSaved(); }} />

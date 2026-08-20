@@ -64,7 +64,19 @@ export async function obtenerReservaPorToken(token: string) {
     notas: string | null;
     cliente_nombre: string;
     servicios: { nombre: string; precio_cents: number; duracion_min: number }[] | null;
+    resena: { estrellas: number; comentario: string | null } | null;
   } | null;
+}
+
+export async function dejarResena(token: string, estrellas: number, comentario: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("dejar_resena_por_token", {
+    p_token: token,
+    p_estrellas: estrellas,
+    p_comentario: comentario || undefined,
+  });
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const };
 }
 
 export async function cancelarReservaPorToken(token: string) {

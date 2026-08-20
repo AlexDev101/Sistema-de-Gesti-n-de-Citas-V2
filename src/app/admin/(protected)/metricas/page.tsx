@@ -1,5 +1,7 @@
+import { Star } from "@phosphor-icons/react/ssr";
 import { getReservasRango } from "@/lib/actions/admin-agenda";
 import { obtenerOcupacionMes } from "@/lib/actions/disponibilidad";
+import { getResenasRecientes } from "@/lib/actions/admin-resenas";
 import { rangoDia } from "@/lib/agenda-grid";
 import { hoyMadridISO } from "@/lib/wizard-helpers";
 import { eur } from "@/lib/format";
@@ -18,10 +20,13 @@ export default async function MetricasPage() {
   const hastaManana = new Date(hasta);
   hastaManana.setUTCDate(hastaManana.getUTCDate() + 1);
 
-  const [reservas30, ocupacionMes] = await Promise.all([
+  const [reservas30, ocupacionMes, resenas] = await Promise.all([
     getReservasRango(desde, hastaManana.toISOString()),
     obtenerOcupacionMes(anio, mes),
+    getResenasRecientes(),
   ]);
+
+  const mediaEstrellas = resenas.length ? resenas.reduce((a, r) => a + r.estrellas, 0) / resenas.length : 0;
 
   const activas = reservas30.filter((r) => r.estado !== "cancelada");
   const canceladas = reservas30.filter((r) => r.estado === "cancelada");
@@ -112,6 +117,44 @@ export default async function MetricasPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="flex flex-col gap-3.5 rounded-[var(--radius-md)] p-4" style={{ background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}>
+          <div className="flex items-baseline gap-2.5">
+            <span className="text-[13px]">Reseñas</span>
+            {resenas.length > 0 && (
+              <span className="flex items-center gap-1 text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
+                <Star size={13} weight="fill" color="var(--color-accent)" />
+                {mediaEstrellas.toFixed(1)} · {resenas.length} valoración{resenas.length > 1 ? "es" : ""}
+              </span>
+            )}
+          </div>
+          {resenas.length === 0 ? (
+            <span className="text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 45%, transparent)" }}>
+              Todavía no hay reseñas.
+            </span>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {resenas.slice(0, 8).map((r) => (
+                <div key={r.id} className="flex flex-col gap-1 border-b pb-2.5" style={{ borderColor: "color-mix(in srgb, var(--color-text) 8%, transparent)" }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex gap-0.5">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <Star key={i} size={12} weight={i < r.estrellas ? "fill" : "regular"} color="var(--color-accent)" />
+                      ))}
+                    </span>
+                    <span className="text-[11px]" style={{ color: "color-mix(in srgb, var(--color-text) 42%, transparent)" }}>
+                      {new Date(r.creado_at).toLocaleDateString("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" })}
+                    </span>
+                  </div>
+                  {r.comentario && <p className="m-0 text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 75%, transparent)" }}>{r.comentario}</p>}
+                  <span className="text-[11px]" style={{ color: "color-mix(in srgb, var(--color-text) 42%, transparent)" }}>
+                    {r.cliente_nombre}{r.servicios ? ` · ${r.servicios}` : ""}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
