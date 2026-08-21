@@ -1,10 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { TrabajosCarousel } from "@/components/client/TrabajosCarousel";
 import { getServiciosActivos } from "@/lib/data/servicios";
 import { getBarbero, getConfiguracion, HORARIO_NEGOCIO } from "@/lib/data/negocio";
 import { durTxt, eur } from "@/lib/format";
 
 export const revalidate = 0;
+
+const TRABAJOS = ["trabajo-1.jpeg", "trabajo-2.jpeg", "trabajo-3.jpeg", "trabajo-4.jpeg"];
 
 export default async function LandingPage() {
   const [servicios, barbero, configuracion] = await Promise.all([
@@ -120,19 +123,12 @@ export default async function LandingPage() {
 
       <div className="flex flex-col gap-3 px-5 pb-5">
         <h6 style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
-          Trabajos y horario
+          Trabajos y Cortes
         </h6>
-        <div
-          className="relative h-[150px] overflow-hidden rounded-[10px]"
-          style={{ background: "var(--color-surface)" }}
-        >
-          <Image
-            src="/uploads/trabajo-reciente.jpeg"
-            alt="Trabajo reciente"
-            fill
-            className="object-cover lighten"
-          />
-        </div>
+        <TrabajosCarousel archivos={TRABAJOS} />
+        <h6 style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
+          Contacto y Horarios
+        </h6>
         <p className="m-0 text-[13px] leading-relaxed">{configuracion?.direccion}</p>
         {configuracion?.telefono && (
           <a
