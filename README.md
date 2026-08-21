@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FG Hair Studio — Sistema de Reserva de Citas
 
-## Getting Started
+Aplicación de reservas online para una barbería real (Francíso García, Niebla, Huelva). Los clientes reservan sin cuenta desde el móvil, y el barbero gestiona el día a día desde un panel de administración.
 
-First, run the development server:
+**Demo en producción:** https://fg-barbershop.vercel.app
+
+## Capturas
+
+_Pendiente: añade aquí 2-3 capturas (por ejemplo en `docs/screenshots/`) y se incrustan._
+
+## Funcionalidades
+
+### Cliente (`/`, `/reservar`, `/cuenta`)
+- Reserva en 3 pasos (servicio → fecha/hora con ocupación en vivo → confirmación), sin necesidad de cuenta.
+- Anti-doble-reserva a nivel de base de datos (constraint `EXCLUDE` en Postgres), no solo en la app.
+- Email de confirmación y recordatorio a las 24 h antes de la cita (Resend + cron).
+- Cancelación desde el enlace del email de confirmación.
+- Programa de fidelización (1 sello por visita completada, canjeable cada 10) y reseñas post-cita, todo sin login.
+- Página de inicio con carrusel de trabajos recientes (deslizable, sin recortar fotos).
+
+### Administración (`/admin`)
+- **Agenda**: vista día/semana/mes, reprogramar citas arrastrando.
+- **Hoy**: check-in rápido — marcar cita como asistida o no asistida.
+- **Nueva cita**: reservas por teléfono/walk-in, sin la antelación mínima que aplica al público.
+- **Servicios**, **Horario**, **Clientes**, **Métricas** y **Ajustes**.
+- Login solo con email + contraseña; sin `service_role` en ningún punto de la app (las tareas privilegiadas usan funciones `SECURITY DEFINER` en Postgres, acotadas con un secreto propio).
+
+## Stack
+
+- **Next.js 16** (App Router, Server Actions, Route Handlers) + **React 19** + **TypeScript**
+- **Supabase** (Postgres, Auth, RLS, funciones `SECURITY DEFINER`, cron)
+- **Tailwind CSS v4** con tokens de diseño propios ("Nocturne", ver `src/styles/nocturne.css`)
+- **Resend** para email transaccional
+- Desplegado en **Vercel**
+
+## Desarrollo local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Necesita un `.env.local` con las credenciales de Supabase y Resend (no incluido en el repositorio).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build   # build de producción
+npm run lint     # eslint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Estructura
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/app/(client)/     páginas públicas: landing, reservar, cuenta
+src/app/admin/        panel de administración (protegido)
+src/components/       componentes de cliente, admin y compartidos
+src/lib/              acciones de servidor, acceso a datos, utilidades
+supabase/migrations/  esquema y funciones de la base de datos
+```
