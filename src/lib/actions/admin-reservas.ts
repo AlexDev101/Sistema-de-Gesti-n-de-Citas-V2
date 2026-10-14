@@ -4,7 +4,7 @@ import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { getServiciosActivos } from "@/lib/data/servicios";
 import { enviarEmailConfirmacion } from "@/lib/actions/email-confirmacion";
-import { EMAIL_INVALIDO, emailValido } from "@/lib/validacion";
+import { EMAIL_INVALIDO, emailValido, normalizarTelefono } from "@/lib/validacion";
 
 export async function listarServiciosActivos() {
   return getServiciosActivos();
@@ -58,7 +58,9 @@ export async function buscarClientePorTelefono(telefono: string) {
   const { data } = await supabase
     .from("clientes")
     .select("nombre, email")
-    .eq("telefono", telefono.trim())
+    // Los teléfonos se guardan normalizados (ver normalizar_telefono en la
+    // base): sin esto, escribir "600 111 222" no encontraba al cliente.
+    .eq("telefono", normalizarTelefono(telefono))
     .maybeSingle();
   return data;
 }

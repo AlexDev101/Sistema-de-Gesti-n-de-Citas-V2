@@ -5,7 +5,7 @@ import type { Servicio } from "@/lib/servicios-shared";
 import { durTxt, eur } from "@/lib/format";
 import { buscarClientePorTelefono, crearReservaAdmin, listarServiciosActivos } from "@/lib/actions/admin-reservas";
 import { SelectorFechaHora } from "@/components/shared/SelectorFechaHora";
-import { EMAIL_INVALIDO, emailValido } from "@/lib/validacion";
+import { EMAIL_INVALIDO, emailValido, telefonoPanelValido } from "@/lib/validacion";
 
 export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; onCreada: () => void }) {
   const [servicios, setServicios] = useState<Servicio[] | null>(null);
@@ -31,7 +31,7 @@ export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; on
     .reduce((a, s) => a + s.precio_cents, 0);
 
   async function onTelefonoBlur() {
-    if (telefono.trim().length < 5) return;
+    if (!telefonoPanelValido(telefono)) return;
     const cliente = await buscarClientePorTelefono(telefono);
     if (cliente) {
       setNombre(cliente.nombre);
@@ -62,7 +62,7 @@ export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; on
 
   const emailOk = emailValido(email);
   const puedeConfirmar =
-    nombre.trim().length > 1 && telefono.trim().length > 5 && seleccion.length > 0 && !!hora && emailOk;
+    nombre.trim().length > 1 && telefonoPanelValido(telefono) && seleccion.length > 0 && !!hora && emailOk;
 
   return (
     <div className="dialog-backdrop" onClick={onClose}>

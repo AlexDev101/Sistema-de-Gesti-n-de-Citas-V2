@@ -187,6 +187,52 @@ export type Database = {
         }
         Relationships: []
       }
+      notas_internas_cliente: {
+        Row: {
+          cliente_id: string
+          texto: string
+        }
+        Insert: {
+          cliente_id: string
+          texto?: string
+        }
+        Update: {
+          cliente_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notas_internas_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notas_internas_reserva: {
+        Row: {
+          reserva_id: string
+          texto: string
+        }
+        Insert: {
+          reserva_id: string
+          texto?: string
+        }
+        Update: {
+          reserva_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notas_internas_reserva_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: true
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resenas: {
         Row: {
           comentario: string | null
@@ -259,6 +305,7 @@ export type Database = {
         Row: {
           cliente_id: string
           created_at: string
+          email_contacto: string | null
           estado: string
           fin: string
           id: string
@@ -272,6 +319,7 @@ export type Database = {
         Insert: {
           cliente_id: string
           created_at?: string
+          email_contacto?: string | null
           estado?: string
           fin: string
           id?: string
@@ -285,6 +333,7 @@ export type Database = {
         Update: {
           cliente_id?: string
           created_at?: string
+          email_contacto?: string | null
           estado?: string
           fin?: string
           id?: string
@@ -405,6 +454,7 @@ export type Database = {
         Returns: boolean
       }
       mi_fidelizacion: { Args: never; Returns: Json }
+      normalizar_telefono: { Args: { p: string }; Returns: string }
       obtener_reserva_por_token: { Args: { p_token: string }; Returns: Json }
       ocupacion_mes: {
         Args: { p_anio: number; p_mes: number; p_respetar_antelacion?: boolean }

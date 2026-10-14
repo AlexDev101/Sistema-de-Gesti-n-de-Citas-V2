@@ -22,9 +22,15 @@ export async function getClientesResumen(): Promise<ClienteResumen[]> {
   return data;
 }
 
+// La nota de la ficha vive en notas_internas_cliente (solo admin por RLS):
+// como columna de `clientes` la podía leer el propio cliente desde su cuenta.
+// clientes_resumen() la sigue devolviendo como `notas_internas`.
 export async function actualizarNotasCliente(id: string, notas: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("clientes").update({ notas_internas: notas }).eq("id", id).select("id");
+  const { data, error } = await supabase
+    .from("notas_internas_cliente")
+    .upsert({ cliente_id: id, texto: notas }, { onConflict: "cliente_id" })
+    .select("cliente_id");
   return resultado(error, data);
 }
 

@@ -40,9 +40,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
   if (isLoginPage && user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin/hoy";
-    return NextResponse.redirect(url);
+    // Tener sesión no basta para saltarse el login: los clientes también
+    // inician sesión (en /cuenta). Si se redirigía a cualquiera con sesión,
+    // el layout protegido lo devolvía aquí por no ser admin y el navegador
+    // entraba en un bucle de redirecciones.
+    const { data: esAdmin } = await supabase.rpc("es_admin");
+    if (esAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/hoy";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;

@@ -7,7 +7,7 @@ import type { Servicio } from "@/lib/servicios-shared";
 import { agruparPorCategoria } from "@/lib/servicios-shared";
 import { durTxt, eur } from "@/lib/format";
 import { crearReserva } from "@/lib/actions/reservas";
-import { EMAIL_INVALIDO, emailValido } from "@/lib/validacion";
+import { EMAIL_INVALIDO, TELEFONO_INVALIDO, emailValido, telefonoEspanolValido } from "@/lib/validacion";
 import { useRealtimeDia } from "@/lib/useRealtimeDia";
 import { SelectorFechaHora, type SelectorFechaHoraHandle } from "@/components/shared/SelectorFechaHora";
 
@@ -65,7 +65,8 @@ export function WizardReserva({
   }
 
   const nombreValido = nombre.trim().length > 1;
-  const telefonoValido = telefono.trim().length > 5;
+  const telefonoValido = telefonoEspanolValido(telefono);
+  const telefonoConError = telefono.trim() !== "" && !telefonoValido;
   const emailOk = emailValido(email);
 
   async function confirmar() {
@@ -268,7 +269,20 @@ export function WizardReserva({
               </div>
               <div className="field">
                 <label>Teléfono</label>
-                <input className="input" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="600 000 000" />
+                <input
+                  className="input"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  placeholder="600 000 000"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  aria-invalid={telefonoConError}
+                />
+                {telefonoConError && (
+                  <p className="m-0 mt-1 text-[11px]" style={{ color: "var(--color-state-alta)" }}>
+                    {TELEFONO_INVALIDO}
+                  </p>
+                )}
               </div>
               <div className="field">
                 <label>Email</label>

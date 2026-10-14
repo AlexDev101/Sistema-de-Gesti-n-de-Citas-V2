@@ -3,7 +3,7 @@
 import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import { enviarEmailConfirmacion } from "@/lib/actions/email-confirmacion";
-import { EMAIL_INVALIDO, emailValido } from "@/lib/validacion";
+import { EMAIL_INVALIDO, TELEFONO_INVALIDO, emailValido, telefonoEspanolValido } from "@/lib/validacion";
 
 export type CrearReservaInput = {
   nombre: string;
@@ -23,6 +23,7 @@ export async function crearReserva(input: CrearReservaInput): Promise<CrearReser
   // acción directamente se la salta, y un email mal escrito significa que el
   // cliente nunca recibe confirmación ni recordatorio.
   if (!emailValido(input.email)) return { ok: false, error: EMAIL_INVALIDO };
+  if (!telefonoEspanolValido(input.telefono)) return { ok: false, error: TELEFONO_INVALIDO };
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("crear_reserva", {

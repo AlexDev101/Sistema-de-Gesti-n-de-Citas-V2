@@ -9,13 +9,16 @@ export type ReservaAgenda = {
   fin: string;
   estado: string;
   precio_total_cents: number;
+  // `notas` es lo que escribió el cliente al reservar; `notasInternas` es
+  // del barbero y vive en notas_internas_reserva, a la que solo llega el admin.
   notas: string | null;
+  notasInternas: string | null;
   cliente: { id: string; nombre: string; telefono: string } | null;
   servicios: { nombre: string; duracion_min: number }[];
 };
 
 const SELECT_AGENDA =
-  "id, inicio, fin, estado, precio_total_cents, notas, clientes(id, nombre, telefono), reserva_servicios(duracion_min, servicios(nombre))";
+  "id, inicio, fin, estado, precio_total_cents, notas, notas_internas_reserva(texto), clientes(id, nombre, telefono), reserva_servicios(duracion_min, servicios(nombre))";
 
 type Fila = {
   id: string;
@@ -24,6 +27,7 @@ type Fila = {
   estado: string;
   precio_total_cents: number;
   notas: string | null;
+  notas_internas_reserva: { texto: string } | null;
   clientes: { id: string; nombre: string; telefono: string } | null;
   reserva_servicios: { duracion_min: number; servicios: { nombre: string } | null }[];
 };
@@ -36,6 +40,7 @@ function mapear(filas: Fila[]): ReservaAgenda[] {
     estado: f.estado,
     precio_total_cents: f.precio_total_cents,
     notas: f.notas,
+    notasInternas: f.notas_internas_reserva?.texto ?? null,
     cliente: f.clientes,
     servicios: f.reserva_servicios.map((rs) => ({
       nombre: rs.servicios?.nombre ?? "",
@@ -89,8 +94,14 @@ export async function actualizarEstadoReserva(id: string, estado: string) {
   return resultado(error, data);
 }
 
+// Antes escribía en reservas.notas, que el propio cliente puede leer (RLS le
+// da su fila entera y obtener_reserva_por_token la devuelve). Las notas del
+// barbero van a una tabla aparte con política solo-admin.
 export async function actualizarNotasReserva(id: string, notas: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("reservas").update({ notas }).eq("id", id).select("id");
+  const { data, error } = await supabase
+    .from("notas_internas_reserva")
+    .upsert({ reserva_id: id, texto: notas }, { onConflict: "reserva_id" })
+    .select("reserva_id");
   return resultado(error, data);
 }

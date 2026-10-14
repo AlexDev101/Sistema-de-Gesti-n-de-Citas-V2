@@ -18,10 +18,14 @@ export function fallo(error: string): Resultado {
 export const SIN_PERMISO = "No se guardó: puede que la sesión haya caducado. Vuelve a entrar e inténtalo otra vez.";
 
 export function resultado(
-  error: { message: string } | null,
+  error: { message: string; code?: string } | null,
   filas: unknown[] | null,
   mensajeError?: string
 ): Resultado {
+  // 42501 = RLS rechazó la escritura. Con UPDATE/DELETE eso llega como "cero
+  // filas" (más abajo); con INSERT o upsert llega como error, y el mensaje
+  // crudo de Postgres no le dice nada a quien está usando el panel.
+  if (error?.code === "42501") return fallo(SIN_PERMISO);
   if (error) return fallo(mensajeError ?? error.message);
   if (!filas || filas.length === 0) return fallo(SIN_PERMISO);
   return OK;

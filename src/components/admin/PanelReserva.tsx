@@ -21,7 +21,7 @@ export function PanelReserva({
   // Parent mounts this with key={reserva.id}, so a different reserva
   // remounts the component and these reset to their initial values —
   // no reset-on-prop-change effect needed.
-  const [notas, setNotas] = useState(reserva.notas ?? "");
+  const [notas, setNotas] = useState(reserva.notasInternas ?? "");
   const [historial, setHistorial] = useState<ReservaAgenda[] | null>(null);
   const duracion = reserva.servicios.reduce((a, s) => a + s.duracion_min, 0);
   const { aviso, guardando } = useAviso();
@@ -52,6 +52,7 @@ export function PanelReserva({
           v: `${new Date(reserva.inicio).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid" })} · ${durTxt(duracion)}`,
         },
         { k: "Precio", v: eur(reserva.precio_total_cents) },
+        ...(reserva.notas ? [{ k: "Nota del cliente", v: reserva.notas }] : []),
       ].map((d) => (
         <div
           key={d.k}
