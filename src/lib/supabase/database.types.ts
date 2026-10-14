@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      alta_admin: {
+        Row: { codigo: string; creado_at: string; usado_at: string | null }
+        Insert: { codigo: string; creado_at?: string; usado_at?: string | null }
+        Update: { codigo?: string; creado_at?: string; usado_at?: string | null }
+        Relationships: []
+      }
       barbero: {
         Row: {
           avatar_url: string | null
@@ -45,21 +51,9 @@ export type Database = {
         Relationships: []
       }
       cierres: {
-        Row: {
-          id: string
-          motivo: string | null
-          rango: unknown
-        }
-        Insert: {
-          id?: string
-          motivo?: string | null
-          rango: unknown
-        }
-        Update: {
-          id?: string
-          motivo?: string | null
-          rango?: unknown
-        }
+        Row: { id: string; motivo: string | null; rango: unknown }
+        Insert: { id?: string; motivo?: string | null; rango: unknown }
+        Update: { id?: string; motivo?: string | null; rango?: unknown }
         Relationships: []
       }
       clientes: {
@@ -68,7 +62,7 @@ export type Database = {
           email: string | null
           id: string
           nombre: string
-          notas_internas: string | null
+          privacidad_aceptada_at: string | null
           telefono: string
           user_id: string | null
         }
@@ -77,7 +71,7 @@ export type Database = {
           email?: string | null
           id?: string
           nombre: string
-          notas_internas?: string | null
+          privacidad_aceptada_at?: string | null
           telefono: string
           user_id?: string | null
         }
@@ -86,7 +80,7 @@ export type Database = {
           email?: string | null
           id?: string
           nombre?: string
-          notas_internas?: string | null
+          privacidad_aceptada_at?: string | null
           telefono?: string
           user_id?: string | null
         }
@@ -97,8 +91,14 @@ export type Database = {
           antelacion_max_dias: number
           antelacion_min_horas: number
           ciudad: string
+          color_acento: string | null
           direccion: string
+          horas_limite_cambio: number
           id: string
+          legal_email: string | null
+          legal_nif: string | null
+          legal_titular: string | null
+          logo_url: string | null
           nombre_negocio: string
           politica_cancelacion: string
           telefono: string | null
@@ -107,8 +107,14 @@ export type Database = {
           antelacion_max_dias?: number
           antelacion_min_horas?: number
           ciudad?: string
+          color_acento?: string | null
           direccion?: string
+          horas_limite_cambio?: number
           id?: string
+          legal_email?: string | null
+          legal_nif?: string | null
+          legal_titular?: string | null
+          logo_url?: string | null
           nombre_negocio?: string
           politica_cancelacion?: string
           telefono?: string | null
@@ -117,45 +123,71 @@ export type Database = {
           antelacion_max_dias?: number
           antelacion_min_horas?: number
           ciudad?: string
+          color_acento?: string | null
           direccion?: string
+          horas_limite_cambio?: number
           id?: string
+          legal_email?: string | null
+          legal_nif?: string | null
+          legal_titular?: string | null
+          logo_url?: string | null
           nombre_negocio?: string
           politica_cancelacion?: string
           telefono?: string | null
         }
         Relationships: []
       }
-      cron_secreto: {
-        Row: {
-          secreto: string
-          unico: boolean
-        }
-        Insert: {
-          secreto: string
-          unico?: boolean
-        }
-        Update: {
-          secreto?: string
-          unico?: boolean
-        }
+      configuracion_privada: {
+        Row: { email_avisos: string | null; unico: boolean }
+        Insert: { email_avisos?: string | null; unico?: boolean }
+        Update: { email_avisos?: string | null; unico?: boolean }
         Relationships: []
       }
-      fidelizacion_canjes: {
+      cron_secreto: {
+        Row: { endpoint: string | null; secreto: string; unico: boolean }
+        Insert: { endpoint?: string | null; secreto: string; unico?: boolean }
+        Update: { endpoint?: string | null; secreto?: string; unico?: boolean }
+        Relationships: []
+      }
+      envios_fallidos: {
         Row: {
-          cliente_id: string
           creado_at: string
+          detalle: string | null
           id: string
+          reserva_id: string | null
+          tipo: string
+          visto_at: string | null
         }
         Insert: {
-          cliente_id: string
           creado_at?: string
+          detalle?: string | null
           id?: string
+          reserva_id?: string | null
+          tipo: string
+          visto_at?: string | null
         }
         Update: {
-          cliente_id?: string
           creado_at?: string
+          detalle?: string | null
           id?: string
+          reserva_id?: string | null
+          tipo?: string
+          visto_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "envios_fallidos_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fidelizacion_canjes: {
+        Row: { cliente_id: string; creado_at: string; id: string }
+        Insert: { cliente_id: string; creado_at?: string; id?: string }
+        Update: { cliente_id?: string; creado_at?: string; id?: string }
         Relationships: [
           {
             foreignKeyName: "fidelizacion_canjes_cliente_id_fkey"
@@ -167,39 +199,15 @@ export type Database = {
         ]
       }
       horario_barbero: {
-        Row: {
-          abre: string
-          cierra: string
-          dia_semana: number
-          id: string
-        }
-        Insert: {
-          abre: string
-          cierra: string
-          dia_semana: number
-          id?: string
-        }
-        Update: {
-          abre?: string
-          cierra?: string
-          dia_semana?: number
-          id?: string
-        }
+        Row: { abre: string; cierra: string; dia_semana: number; id: string }
+        Insert: { abre: string; cierra: string; dia_semana: number; id?: string }
+        Update: { abre?: string; cierra?: string; dia_semana?: number; id?: string }
         Relationships: []
       }
       notas_internas_cliente: {
-        Row: {
-          cliente_id: string
-          texto: string
-        }
-        Insert: {
-          cliente_id: string
-          texto?: string
-        }
-        Update: {
-          cliente_id?: string
-          texto?: string
-        }
+        Row: { cliente_id: string; texto: string }
+        Insert: { cliente_id: string; texto?: string }
+        Update: { cliente_id?: string; texto?: string }
         Relationships: [
           {
             foreignKeyName: "notas_internas_cliente_cliente_id_fkey"
@@ -211,18 +219,9 @@ export type Database = {
         ]
       }
       notas_internas_reserva: {
-        Row: {
-          reserva_id: string
-          texto: string
-        }
-        Insert: {
-          reserva_id: string
-          texto?: string
-        }
-        Update: {
-          reserva_id?: string
-          texto?: string
-        }
+        Row: { reserva_id: string; texto: string }
+        Insert: { reserva_id: string; texto?: string }
+        Update: { reserva_id?: string; texto?: string }
         Relationships: [
           {
             foreignKeyName: "notas_internas_reserva_reserva_id_fkey"
@@ -266,24 +265,9 @@ export type Database = {
         ]
       }
       reserva_servicios: {
-        Row: {
-          duracion_min: number
-          precio_cents: number
-          reserva_id: string
-          servicio_id: string
-        }
-        Insert: {
-          duracion_min: number
-          precio_cents: number
-          reserva_id: string
-          servicio_id: string
-        }
-        Update: {
-          duracion_min?: number
-          precio_cents?: number
-          reserva_id?: string
-          servicio_id?: string
-        }
+        Row: { duracion_min: number; precio_cents: number; reserva_id: string; servicio_id: string }
+        Insert: { duracion_min: number; precio_cents: number; reserva_id: string; servicio_id: string }
+        Update: { duracion_min?: number; precio_cents?: number; reserva_id?: string; servicio_id?: string }
         Relationships: [
           {
             foreignKeyName: "reserva_servicios_reserva_id_fkey"
@@ -311,6 +295,7 @@ export type Database = {
           id: string
           inicio: string
           notas: string | null
+          origen: string | null
           precio_total_cents: number
           rango: unknown
           recordatorio_enviado_at: string | null
@@ -325,6 +310,7 @@ export type Database = {
           id?: string
           inicio: string
           notas?: string | null
+          origen?: string | null
           precio_total_cents: number
           rango?: unknown
           recordatorio_enviado_at?: string | null
@@ -339,6 +325,7 @@ export type Database = {
           id?: string
           inicio?: string
           notas?: string | null
+          origen?: string | null
           precio_total_cents?: number
           rango?: unknown
           recordatorio_enviado_at?: string | null
@@ -389,11 +376,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cancelar_reserva_por_token: {
-        Args: { p_token: string }
-        Returns: boolean
-      }
+      anonimizar_cliente: { Args: { p_cliente_id: string }; Returns: boolean }
+      anonimizar_cliente_interno: { Args: { p_cliente_id: string }; Returns: undefined }
+      borrar_mis_datos: { Args: never; Returns: boolean }
+      cancelar_reserva_por_token: { Args: { p_token: string }; Returns: boolean }
       canjear_fidelizacion: { Args: { p_cliente_id: string }; Returns: boolean }
+      cierres_listado: {
+        Args: { p_desde?: string }
+        Returns: { citas_afectadas: number; desde: string; hasta: string; id: string; motivo: string }[]
+      }
       clientes_resumen: {
         Args: never
         Returns: {
@@ -408,6 +399,10 @@ export type Database = {
           visitas: number
         }[]
       }
+      crear_cierre: {
+        Args: { p_desde: string; p_hasta: string; p_motivo?: string }
+        Returns: number
+      }
       crear_reserva: {
         Args: {
           p_email: string
@@ -417,10 +412,7 @@ export type Database = {
           p_servicio_ids: string[]
           p_telefono: string
         }
-        Returns: {
-          reserva_id: string
-          token: string
-        }[]
+        Returns: { reserva_id: string; token: string }[]
       }
       crear_reserva_admin: {
         Args: {
@@ -431,24 +423,38 @@ export type Database = {
           p_servicio_ids: string[]
           p_telefono: string
         }
-        Returns: {
-          reserva_id: string
-          token: string
-        }[]
+        Returns: { reserva_id: string; token: string }[]
+      }
+      crear_reserva_publica: {
+        Args: {
+          p_acepta_privacidad?: boolean
+          p_email: string
+          p_inicio: string
+          p_nombre: string
+          p_notas?: string
+          p_origen?: string
+          p_secret?: string
+          p_servicio_ids: string[]
+          p_telefono: string
+        }
+        Returns: { reserva_id: string; token: string }[]
+      }
+      datos_aviso_reserva: {
+        Args: { p_reserva_id: string; p_secret: string }
+        Returns: Json
       }
       dejar_resena_por_token: {
         Args: { p_comentario?: string; p_estrellas: number; p_token: string }
         Returns: boolean
       }
+      email_avisos_negocio: { Args: { p_secret: string }; Returns: string }
       es_admin: { Args: never; Returns: boolean }
       fidelizacion_clientes: {
         Args: never
-        Returns: {
-          cliente_id: string
-          puede_canjear: boolean
-          sellos_disponibles: number
-        }[]
+        Returns: { cliente_id: string; puede_canjear: boolean; sellos_disponibles: number }[]
       }
+      importar_clientes: { Args: { p_filas: Json }; Returns: Json }
+      lanzar_recordatorios: { Args: never; Returns: number }
       marcar_recordatorio_enviado: {
         Args: { p_id: string; p_secret: string }
         Returns: boolean
@@ -458,13 +464,18 @@ export type Database = {
       obtener_reserva_por_token: { Args: { p_token: string }; Returns: Json }
       ocupacion_mes: {
         Args: { p_anio: number; p_mes: number; p_respetar_antelacion?: boolean }
-        Returns: {
-          cap: number
-          fecha: string
-          ocupados: number
-        }[]
+        Returns: { cap: number; fecha: string; ocupados: number }[]
       }
       reclamar_admin: { Args: never; Returns: boolean }
+      reclamar_admin_con_codigo: { Args: { p_codigo: string }; Returns: boolean }
+      registrar_envio_fallido: {
+        Args: { p_detalle: string; p_reserva_id: string; p_secret: string; p_tipo: string }
+        Returns: undefined
+      }
+      reprogramar_reserva_por_token: {
+        Args: { p_inicio: string; p_token: string }
+        Returns: boolean
+      }
       resenas_recientes: {
         Args: { p_limite?: number }
         Returns: {
@@ -476,19 +487,19 @@ export type Database = {
           servicios: string
         }[]
       }
-      reservas_pendientes_recordatorio: {
-        Args: { p_secret: string }
-        Returns: Json
-      }
+      reservas_pendientes_recordatorio: { Args: { p_secret: string }; Returns: Json }
       slots_disponibles: {
+        Args: { p_duracion_min: number; p_fecha: string; p_respetar_antelacion?: boolean }
+        Returns: { inicio: string }[]
+      }
+      slots_disponibles_excluyendo: {
         Args: {
           p_duracion_min: number
+          p_excluir_token: string
           p_fecha: string
           p_respetar_antelacion?: boolean
         }
-        Returns: {
-          inicio: string
-        }[]
+        Returns: { inicio: string }[]
       }
       vincular_cliente_actual: { Args: never; Returns: boolean }
     }
