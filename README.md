@@ -70,8 +70,8 @@ npm run build
 ```
 
 `supabase/tests/funciones.sql` prueba las funciones de reserva contra una base
-real sin dejar nada guardado. GitHub Actions ejecuta lint, tipos, tests y build
-en cada push (`.github/workflows/ci.yml`).
+real sin dejar nada guardado. El workflow de GitHub Actions (lint, tipos, tests y build en cada push) está
+en `docs/ci-github-actions.yml`; ahí se explica cómo activarlo.
 
 ## Estructura
 
