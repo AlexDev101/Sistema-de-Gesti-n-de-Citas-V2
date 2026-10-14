@@ -49,3 +49,29 @@ export async function canjearFidelizacion(clienteId: string) {
   if (error) return { ok: false as const, error: error.message };
   return { ok: true as const };
 }
+
+// Borrado a petición del cliente (RGPD): se anonimiza la ficha en vez de
+// borrar la fila, para que las citas pasadas sigan contando en las métricas.
+export async function anonimizarCliente(clienteId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("anonimizar_cliente", { p_cliente_id: clienteId });
+  if (error) return { ok: false as const, error: error.message };
+  if (!data) return { ok: false as const, error: "No se encontró al cliente" };
+  return { ok: true as const };
+}
+
+export type ResultadoImportacion =
+  | { ok: true; creados: number; existentes: number; invalidos: number }
+  | { ok: false; error: string };
+
+export async function importarClientes(
+  filas: { nombre: string; telefono: string; email: string; notas: string }[]
+): Promise<ResultadoImportacion> {
+  if (filas.length === 0) return { ok: false, error: "El fichero no tiene clientes" };
+  if (filas.length > 5000) return { ok: false, error: "Como mucho 5000 clientes por importación" };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("importar_clientes", { p_filas: filas });
+  if (error) return { ok: false, error: error.message };
+  const r = data as { creados: number; existentes: number; invalidos: number };
+  return { ok: true, ...r };
+}

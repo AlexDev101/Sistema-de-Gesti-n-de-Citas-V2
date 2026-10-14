@@ -17,6 +17,9 @@ export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boole
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [codigo, setCodigo] = useState("");
+  // Código de alta de un solo uso, fijado al instalar (ver docs/INSTALACION.md).
+  // Sin él, el primero que llegara a una instalación nueva se quedaba el panel.
+  const [codigoAlta, setCodigoAlta] = useState("");
   const [enviando, setEnviando] = useState(false);
   // `motivo` explica por qué te devolvió aquí el callback; se descarta en
   // cuanto el formulario tiene algo propio que decir.
@@ -85,7 +88,14 @@ export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boole
     setEnviando(true);
     const { error: errOtp } = await supabase.auth.verifyOtp({ email, token: codigo, type: "email" });
     if (errOtp) { setEnviando(false); setError(errOtp.message); return; }
-    await supabase.rpc("reclamar_admin");
+    const { error: errAlta } = await supabase.rpc("reclamar_admin_con_codigo", { p_codigo: codigoAlta });
+    if (errAlta) {
+      setEnviando(false);
+      setError(errAlta.message);
+      await supabase.auth.signOut();
+      setModo("otp-email");
+      return;
+    }
     await entrarConPanel();
     setEnviando(false);
   }
@@ -101,7 +111,7 @@ export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boole
         </span>
         <span className="text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
           {necesitaClaim
-            ? "Nadie ha reclamado el panel todavía — el primer email que verifiques aquí queda como administrador."
+            ? "Primer arranque: verifica tu email y escribe el código de alta que te dieron al instalar."
             : "Entra con tu email y contraseña."}
         </span>
       </div>
@@ -109,12 +119,12 @@ export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boole
       {modo === "password" && !necesitaClaim && (
         <div className="flex flex-col gap-2.5">
           <div className="field">
-            <label>Email</label>
-            <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+            <label htmlFor="login-email">Email</label>
+            <input id="login-email" className="input" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
           </div>
           <div className="field">
-            <label>Contraseña</label>
-            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+            <label htmlFor="login-pass">Contraseña</label>
+            <input id="login-pass" className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </div>
           <button className="btn btn-primary btn-block" disabled={enviando || !email.includes("@") || !password} onClick={entrarConPassword}>
             {enviando ? "Entrando…" : "Entrar"}
@@ -179,10 +189,14 @@ export function AdminLoginForm({ necesitaClaim, motivo }: { necesitaClaim: boole
       {modo === "otp-email" && necesitaClaim && (
         <div className="flex flex-col gap-2.5">
           <div className="field">
-            <label>Email</label>
-            <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+            <label htmlFor="alta-codigo">Código de alta</label>
+            <input id="alta-codigo" className="input" value={codigoAlta} onChange={(e) => setCodigoAlta(e.target.value)} autoComplete="off" />
           </div>
-          <button className="btn btn-primary btn-block" disabled={enviando || !email.includes("@")} onClick={enviarCodigo}>
+          <div className="field">
+            <label htmlFor="alta-email">Email</label>
+            <input id="alta-email" className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+          </div>
+          <button className="btn btn-primary btn-block" disabled={enviando || !email.includes("@") || codigoAlta.trim().length < 6} onClick={enviarCodigo}>
             {enviando ? "Enviando…" : "Enviar código"}
           </button>
         </div>

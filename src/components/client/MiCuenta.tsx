@@ -8,6 +8,7 @@ import { eur } from "@/lib/format";
 
 type ReservaFila = {
   id: string;
+  token: string;
   inicio: string;
   estado: string;
   precio_total_cents: number;
@@ -25,6 +26,8 @@ export function MiCuenta() {
   const [reservas, setReservas] = useState<ReservaFila[] | null>(null);
   const [clienteNombre, setClienteNombre] = useState<string | null>(null);
   const [fidelizacion, setFidelizacion] = useState<{ sellos_disponibles: number; puede_canjear: boolean } | null>(null);
+  const [nombreBarbero, setNombreBarbero] = useState<string>("");
+  const [borrando, setBorrando] = useState<"no" | "preguntando" | "borrando">("no");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -32,6 +35,10 @@ export function MiCuenta() {
       setUser(session?.user ?? null);
     });
     return () => sub.subscription.unsubscribe();
+  }, [supabase]);
+
+  useEffect(() => {
+    supabase.from("barbero").select("nombre").limit(1).maybeSingle().then(({ data }) => setNombreBarbero(data?.nombre ?? ""));
   }, [supabase]);
 
   useEffect(() => {
@@ -50,7 +57,7 @@ export function MiCuenta() {
       setClienteNombre(cliente.nombre);
       const { data } = await supabase
         .from("reservas")
-        .select("id, inicio, estado, precio_total_cents, reserva_servicios(servicio_id, servicios(nombre))")
+        .select("id, token, inicio, estado, precio_total_cents, reserva_servicios(servicio_id, servicios(nombre))")
         .eq("cliente_id", cliente.id)
         .order("inicio", { ascending: false });
       setReservas((data as unknown as ReservaFila[]) ?? []);
@@ -91,8 +98,8 @@ export function MiCuenta() {
         {etapa === "email" ? (
           <div className="flex flex-col gap-2.5">
             <div className="field">
-              <label>Email</label>
-              <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+              <label htmlFor="cuenta-email">Email</label>
+              <input id="cuenta-email" className="input" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
             </div>
             <button className="btn btn-primary btn-block" disabled={enviando || !email.includes("@")} onClick={enviarCodigo}>
               {enviando ? "Enviando…" : "Enviar código"}
@@ -101,8 +108,8 @@ export function MiCuenta() {
         ) : (
           <div className="flex flex-col gap-2.5">
             <div className="field">
-              <label>Código recibido en {email}</label>
-              <input className="input" value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="123456" />
+              <label htmlFor="cuenta-codigo">Código recibido en {email}</label>
+              <input id="cuenta-codigo" className="input" inputMode="numeric" autoComplete="one-time-code" value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="123456" />
             </div>
             <button className="btn btn-primary btn-block" disabled={enviando || codigo.length < 4} onClick={verificarCodigo}>
               {enviando ? "Comprobando…" : "Entrar"}
@@ -158,7 +165,7 @@ export function MiCuenta() {
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm" style={{ fontFamily: "var(--font-heading)" }}>
                   {fidelizacion.puede_canjear
-                    ? "¡Tienes un corte gratis! Coméntaselo a Francíso en tu próxima visita."
+                    ? `¡Tienes un corte gratis! Coméntaselo ${nombreBarbero ? `a ${nombreBarbero}` : "en la barbería"} en tu próxima visita.`
                     : `${fidelizacion.sellos_disponibles}/10 sellos`}
                 </span>
                 {!fidelizacion.puede_canjear && (
@@ -197,6 +204,9 @@ export function MiCuenta() {
                   </div>
                   <span className="tag tag-accent">{eur(proxima.precio_total_cents)}</span>
                 </div>
+                <Link href={`/reservar/confirmacion/${proxima.token}`} className="btn btn-secondary">
+                  Cambiar o cancelar
+                </Link>
               </div>
             ) : (
               <Link href="/reservar" className="btn btn-secondary btn-block">Reservar cita</Link>
@@ -224,6 +234,47 @@ export function MiCuenta() {
                 </Link>
               </div>
             ))}
+          </div>
+
+          <div className="mt-2 flex flex-col gap-2 border-t pt-4" style={{ borderColor: "color-mix(in srgb, var(--color-text) 8%, transparent)" }}>
+            <h6 style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>Tus datos</h6>
+            {borrando === "no" && (
+              <button className="btn btn-ghost self-start text-xs" onClick={() => setBorrando("preguntando")}>
+                Borrar mis datos
+              </button>
+            )}
+            {borrando !== "no" && (
+              <div className="flex flex-col gap-2 rounded-[var(--radius-md)] p-3.5 text-xs" style={{ background: "var(--color-surface)" }}>
+                <span>
+                  Se borran tu nombre, teléfono y email, se cancelan tus citas pendientes y se cierra la sesión. No se puede
+                  deshacer.
+                </span>
+                <div className="flex gap-2">
+                  <button className="btn btn-secondary" onClick={() => setBorrando("no")}>Volver</button>
+                  <button
+                    className="btn btn-primary"
+                    style={{ color: "var(--color-state-alta)", borderColor: "var(--color-state-alta)" }}
+                    disabled={borrando === "borrando"}
+                    onClick={async () => {
+                      setBorrando("borrando");
+                      const { error } = await supabase.rpc("borrar_mis_datos");
+                      if (error) {
+                        setError(error.message);
+                        setBorrando("no");
+                        return;
+                      }
+                      await supabase.auth.signOut();
+                    }}
+                  >
+                    {borrando === "borrando" ? "Borrando…" : "Borrar definitivamente"}
+                  </button>
+                </div>
+              </div>
+            )}
+            {error && <p className="m-0 text-[13px]" style={{ color: "var(--color-state-alta)" }}>{error}</p>}
+            <Link href="/privacidad" className="text-[11px]" style={{ color: "color-mix(in srgb, var(--color-text) 60%, transparent)" }}>
+              Aviso de privacidad
+            </Link>
           </div>
         </>
       )}

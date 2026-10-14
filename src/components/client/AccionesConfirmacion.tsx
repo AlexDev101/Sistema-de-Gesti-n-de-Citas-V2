@@ -39,7 +39,7 @@ export function AccionesConfirmacion({
     const ics = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//FG Hair Studio//Reservas//ES",
+      "PRODID:-//Sistema de citas//Reservas//ES",
       "BEGIN:VEVENT",
       `UID:${crypto.randomUUID()}`,
       `DTSTAMP:${aICSFecha(new Date().toISOString())}`,
@@ -55,7 +55,7 @@ export function AccionesConfirmacion({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "cita-fg-barbershop.ics";
+    a.download = "cita.ics";
     a.click();
     URL.revokeObjectURL(url);
   }
