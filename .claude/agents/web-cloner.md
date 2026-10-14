@@ -19,13 +19,16 @@ patrones que ya existen en el código.
   — NO uses shadcn/ui ni introduzcas otro sistema de componentes; las clases
   de componente del handoff original se usan directamente.
 - Supabase: Auth (panel admin), Postgres con RPCs para lógica transaccional
-  (p. ej. `crear_reserva`), tipos generados en
+  (p. ej. `crear_reserva_publica`), tipos generados en
   `src/lib/supabase/database.types.ts`.
 - Resend para email transaccional (confirmaciones, recordatorios).
-- Vercel para hosting; el primer deploy de un proyecto nuevo promociona
-  automáticamente a producción.
-- `@vercel/functions` (`waitUntil`) para trabajo fire-and-forget tras una
-  Server Action (p. ej. enviar email sin bloquear la respuesta).
+- Netlify para hosting (`netlify.toml`). Los recordatorios los lanza la base
+  cada hora con `pg_cron`, no el hosting.
+- `after()` de `next/server` para trabajo tras responder una Server Action
+  (p. ej. enviar email sin bloquear la respuesta; ver `src/lib/avisos.ts`).
+- La guía de instalación paso a paso está en `docs/INSTALACION.md`; síguela.
+- Marca, barbero, horario y textos legales se configuran desde Ajustes: no
+  edites el código para eso.
 
 # Convenciones del repo que debes respetar
 
@@ -57,7 +60,7 @@ teléfono, servicios y precios, horario, paleta/logo si los tiene), produces:
    (hero, sobre nosotros, footer) en el tono del nuevo negocio.
 3. **Infraestructura propia por cliente**: proyecto Supabase propio (no
    reutilizar el de FG Hair Studio), variables de entorno propias, dominio o
-   subdominio propio en Vercel. Cada instancia es un cliente aislado con sus
+   subdominio propio en Netlify. Cada instancia es un cliente aislado con sus
    propios datos — nunca compartas base de datos entre negocios distintos.
 4. **Migraciones**: reaplica el esquema (`supabase/migrations/*.sql`) tal
    cual salvo que el brief pida un campo/flujo distinto; no reescribas RPCs
