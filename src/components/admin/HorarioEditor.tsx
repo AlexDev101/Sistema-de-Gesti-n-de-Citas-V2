@@ -18,7 +18,7 @@ export function HorarioEditor({ franjas }: { franjas: Tables<"horario_barbero">[
   }
 
   return (
-    <div className="grid max-w-[900px] grid-cols-2 gap-3.5 sm:grid-cols-3">
+    <div className="grid max-w-[900px] grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
       {ORDEN_VISUAL.map((dia) => {
         const delDia = franjas.filter((f) => f.dia_semana === dia).sort((a, b) => a.abre.localeCompare(b.abre));
         return (
@@ -31,6 +31,7 @@ export function HorarioEditor({ franjas }: { franjas: Tables<"horario_barbero">[
               <div key={f.id} className="flex items-center gap-1.5">
                 <input
                   type="time"
+                  aria-label={`${DIAS[dia]}: abre`}
                   defaultValue={f.abre.slice(0, 5)}
                   className="input"
                   style={{ minHeight: 30, fontSize: 12, padding: "4px 6px" }}
@@ -39,6 +40,7 @@ export function HorarioEditor({ franjas }: { franjas: Tables<"horario_barbero">[
                 <span className="text-[10px]" style={{ color: "color-mix(in srgb, var(--color-text) 40%, transparent)" }}>–</span>
                 <input
                   type="time"
+                  aria-label={`${DIAS[dia]}: cierra`}
                   defaultValue={f.cierra.slice(0, 5)}
                   className="input"
                   style={{ minHeight: 30, fontSize: 12, padding: "4px 6px" }}

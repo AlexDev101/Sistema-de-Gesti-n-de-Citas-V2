@@ -8,6 +8,7 @@ export function RecordatorioCita({
   direccion,
   nombreNegocio,
   gestionUrl,
+  diaRelativo = "mañana",
 }: {
   nombreCliente: string;
   cuando: string;
@@ -15,9 +16,10 @@ export function RecordatorioCita({
   direccion: string;
   nombreNegocio: string;
   gestionUrl: string;
+  diaRelativo?: "hoy" | "mañana";
 }) {
   return (
-    <EmailShell preview={`Recordatorio: mañana ${cuando}`} titulo="Tu cita es mañana" nombreNegocio={nombreNegocio} direccion={direccion}>
+    <EmailShell preview={`Recordatorio: ${diaRelativo}, ${cuando}`} titulo={`Tu cita es ${diaRelativo}`} nombreNegocio={nombreNegocio} direccion={direccion}>
       <Text style={{ color: COLORS.text, fontSize: 14, margin: "0 0 14px" }}>Hola {nombreCliente}, un recordatorio de tu cita:</Text>
       <Fila etiqueta="Cuándo" valor={cuando} />
       <Fila etiqueta="Servicios" valor={servicios} />
@@ -25,7 +27,7 @@ export function RecordatorioCita({
       <Text style={{ color: COLORS.text, fontSize: 13, marginTop: 16 }}>
         ¿No puedes venir?{" "}
         <a href={gestionUrl} style={{ color: COLORS.accent }}>
-          Cancela o reprograma aquí
+          Cámbiala de hora o cancélala aquí
         </a>
       </Text>
     </EmailShell>

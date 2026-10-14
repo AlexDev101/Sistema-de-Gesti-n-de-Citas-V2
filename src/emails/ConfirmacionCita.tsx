@@ -26,7 +26,7 @@ export function ConfirmacionCita({
       <Fila etiqueta="Total" valor={totalTxt} />
       <Fila etiqueta="Dónde" valor={direccion} />
       <Text style={{ color: COLORS.text, fontSize: 13, marginTop: 16 }}>
-        Te escribiremos un recordatorio 24 h antes.{" "}
+        Te enviaremos un recordatorio antes de la cita.{" "}
         <a href={gestionUrl} style={{ color: COLORS.accent }}>
           Gestionar mi cita
         </a>

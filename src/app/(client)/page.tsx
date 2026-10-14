@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { TrabajosCarousel } from "@/components/client/TrabajosCarousel";
 import { getServiciosActivos } from "@/lib/data/servicios";
-import { getBarbero, getConfiguracion, HORARIO_NEGOCIO } from "@/lib/data/negocio";
+import { getBarbero, getConfiguracion, getHorario } from "@/lib/data/negocio";
+import { horarioPublico } from "@/lib/horario";
 import { durTxt, eur } from "@/lib/format";
 
 export const revalidate = 0;
@@ -10,15 +11,34 @@ export const revalidate = 0;
 const TRABAJOS = ["trabajo-1.jpeg", "trabajo-2.jpeg", "trabajo-3.jpeg", "trabajo-4.jpeg"];
 
 export default async function LandingPage() {
-  const [servicios, barbero, configuracion] = await Promise.all([
+  const [servicios, barbero, configuracion, horario] = await Promise.all([
     getServiciosActivos(),
     getBarbero(),
     getConfiguracion(),
+    getHorario(),
   ]);
   const destacados = servicios.slice(0, 5);
+  // Horario público desde la base: el mismo que usa la reserva. Antes era una
+  // lista escrita en el código que no cambiaba al editar el horario.
+  const horarioTxt = horarioPublico(horario);
+  const horasLimite = configuracion?.horas_limite_cambio ?? 24;
+  const mapsUrl = configuracion?.direccion
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(configuracion.direccion)}`
+    : null;
+  const jsonLd = configuracion && {
+    "@context": "https://schema.org",
+    "@type": "BarberShop",
+    name: configuracion.nombre_negocio,
+    address: configuracion.direccion,
+    telephone: configuracion.telefono ?? undefined,
+    priceRange: "€",
+  };
 
   return (
     <div className="flex flex-col gap-[26px] pt-[env(safe-area-inset-top)]">
+      {jsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      )}
       <div className="relative mb-1 h-[300px]">
         <Image
           src="/uploads/hero-local.jpeg"
@@ -35,15 +55,20 @@ export default async function LandingPage() {
           }}
         />
         <div className="pointer-events-none absolute right-5 bottom-[18px] left-5">
+          {configuracion?.logo_url && (
+            // eslint-disable-next-line @next/next/no-img-element -- URL externa elegida en Ajustes
+            <img src={configuracion.logo_url} alt="" className="mb-3 h-11 w-auto max-w-[180px] object-contain" />
+          )}
           <span
             className="text-[10px] tracking-[0.14em] uppercase"
             style={{ color: "var(--color-accent)" }}
           >
-            Barbería · {configuracion?.ciudad}
+            {configuracion?.nombre_negocio}
+            {configuracion?.ciudad ? ` · ${configuracion.ciudad}` : ""}
           </span>
-          <h2 className="mt-2 text-[30px] leading-tight text-balance">
+          <h1 className="mt-2 text-[30px] leading-tight text-balance" style={{ fontFamily: "var(--font-heading)", fontWeight: 500 }}>
             Corte y barba, cita en un minuto
-          </h2>
+          </h1>
         </div>
       </div>
 
@@ -55,7 +80,9 @@ export default async function LandingPage() {
           className="text-center text-[11px]"
           style={{ color: "color-mix(in srgb, var(--color-text) 45%, transparent)" }}
         >
-          Sin cuenta · cancelación gratuita 24 h antes
+          {horasLimite > 0
+            ? `Sin cuenta · cambia o cancela online hasta ${horasLimite} h antes`
+            : "Sin cuenta · cambia o cancela online cuando quieras"}
         </span>
       </div>
 
@@ -129,7 +156,11 @@ export default async function LandingPage() {
         <h6 style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
           Contacto y Horarios
         </h6>
-        <p className="m-0 text-[13px] leading-relaxed">{configuracion?.direccion}</p>
+        {mapsUrl ? (
+          <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="m-0 text-[13px] leading-relaxed" style={{ color: "var(--color-text)" }}>
+            {configuracion?.direccion} <span style={{ color: "var(--color-accent-300)" }}>· Cómo llegar</span>
+          </a>
+        ) : null}
         {configuracion?.telefono && (
           <a
             href={`tel:${configuracion.telefono.replace(/\s+/g, "")}`}
@@ -139,16 +170,20 @@ export default async function LandingPage() {
             {configuracion.telefono}
           </a>
         )}
-        {HORARIO_NEGOCIO.map((h) => (
+        {horarioTxt.map((h) => (
           <div
             key={h.dias}
-            className="flex justify-between text-xs"
-            style={{ color: "color-mix(in srgb, var(--color-text) 60%, transparent)" }}
+            className="flex justify-between gap-3 text-xs"
+            style={{ color: "color-mix(in srgb, var(--color-text) 70%, transparent)" }}
           >
             <span>{h.dias}</span>
-            <span>{h.horas}</span>
+            <span className="text-right">{h.horas}</span>
           </div>
         ))}
+        <nav aria-label="Información legal" className="mt-3 flex gap-4 text-[11px]">
+          <Link href="/privacidad" style={{ color: "color-mix(in srgb, var(--color-text) 60%, transparent)" }}>Privacidad</Link>
+          <Link href="/aviso-legal" style={{ color: "color-mix(in srgb, var(--color-text) 60%, transparent)" }}>Aviso legal</Link>
+        </nav>
       </div>
     </div>
   );

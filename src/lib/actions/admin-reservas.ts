@@ -1,9 +1,9 @@
 "use server";
 
-import { waitUntil } from "@vercel/functions";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiciosActivos } from "@/lib/data/servicios";
-import { enviarEmailConfirmacion } from "@/lib/actions/email-confirmacion";
+import { avisarCliente } from "@/lib/avisos";
 import { EMAIL_INVALIDO, emailValido, normalizarTelefono } from "@/lib/validacion";
 
 export async function listarServiciosActivos() {
@@ -39,16 +39,9 @@ export async function crearReservaAdmin(input: CrearReservaAdminInput): Promise<
   const row = data?.[0];
   if (!row) return { ok: false, error: "No se pudo crear la reserva" };
 
-  if (input.email) {
-    // Best-effort, igual que en el flujo público: un fallo de email nunca
-    // debe deshacer una reserva ya confirmada en la base de datos. waitUntil
-    // evita que Vercel congele la función antes de que la petición a Resend salga.
-    waitUntil(
-      enviarEmailConfirmacion(row.token, input.email).catch((err) => {
-        console.error("No se pudo enviar el email de confirmación:", err);
-      })
-    );
-  }
+  // El cliente recibe la misma confirmación tanto si reservó él como si la
+  // apuntó el barbero. Después de responder: un fallo de email no deshace nada.
+  if (input.email.trim()) after(() => avisarCliente("confirmacion", row.reserva_id));
 
   return { ok: true, reservaId: row.reserva_id };
 }

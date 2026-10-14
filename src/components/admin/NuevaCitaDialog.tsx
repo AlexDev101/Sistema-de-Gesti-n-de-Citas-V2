@@ -5,6 +5,7 @@ import type { Servicio } from "@/lib/servicios-shared";
 import { durTxt, eur } from "@/lib/format";
 import { buscarClientePorTelefono, crearReservaAdmin, listarServiciosActivos } from "@/lib/actions/admin-reservas";
 import { SelectorFechaHora } from "@/components/shared/SelectorFechaHora";
+import { Dialogo } from "@/components/ui/Dialogo";
 import { EMAIL_INVALIDO, emailValido, telefonoPanelValido } from "@/lib/validacion";
 
 export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; onCreada: () => void }) {
@@ -65,26 +66,22 @@ export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; on
     nombre.trim().length > 1 && telefonoPanelValido(telefono) && seleccion.length > 0 && !!hora && emailOk;
 
   return (
-    <div className="dialog-backdrop" onClick={onClose}>
-      <div className="dialog" style={{ width: 480, maxHeight: "88vh", overflow: "auto" }} onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-baseline gap-2.5">
-          <span className="dialog-title flex-1">Nueva cita</span>
-          <button className="btn btn-icon btn-secondary" aria-label="Cerrar" onClick={onClose}>✕</button>
-        </div>
+    <Dialogo titulo="Nueva cita" onClose={onClose} ancho={480}>
 
         <div className="flex flex-col gap-2.5">
           <div className="field">
-            <label>Teléfono</label>
-            <input className="input" value={telefono} onChange={(e) => setTelefono(e.target.value)} onBlur={onTelefonoBlur} placeholder="600 000 000" />
+            <label htmlFor="nc-tel">Teléfono</label>
+            <input id="nc-tel" className="input" inputMode="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} onBlur={onTelefonoBlur} placeholder="600 000 000" />
           </div>
-          <div className="flex gap-2.5">
+          <div className="flex flex-col gap-2.5 sm:flex-row">
             <div className="field" style={{ flex: 1 }}>
-              <label>Nombre</label>
-              <input className="input" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre y apellido" />
+              <label htmlFor="nc-nombre">Nombre</label>
+              <input id="nc-nombre" className="input" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre y apellido" />
             </div>
             <div className="field" style={{ flex: 1 }}>
-              <label>Email (opcional)</label>
+              <label htmlFor="nc-email">Email (opcional)</label>
               <input
+                id="nc-email"
                 className="input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -144,8 +141,8 @@ export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; on
         </div>
 
         <div className="field">
-          <label>Notas (opcional)</label>
-          <textarea className="input" value={notas} onChange={(e) => setNotas(e.target.value)} style={{ minHeight: 60 }} />
+          <label htmlFor="nc-notas">Notas internas (opcional)</label>
+          <textarea id="nc-notas" className="input" value={notas} onChange={(e) => setNotas(e.target.value)} style={{ minHeight: 60 }} />
         </div>
 
         {precioTotal > 0 && (
@@ -160,7 +157,6 @@ export function NuevaCitaDialog({ onClose, onCreada }: { onClose: () => void; on
         <button className="btn btn-primary btn-block" disabled={!puedeConfirmar || enviando} onClick={confirmar}>
           {enviando ? "Creando…" : "Crear cita"}
         </button>
-      </div>
-    </div>
+    </Dialogo>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CaretLeft, Check } from "@phosphor-icons/react/ssr";
 import type { Servicio } from "@/lib/servicios-shared";
@@ -10,6 +11,8 @@ import { crearReserva } from "@/lib/actions/reservas";
 import { EMAIL_INVALIDO, TELEFONO_INVALIDO, emailValido, telefonoEspanolValido } from "@/lib/validacion";
 import { useRealtimeDia } from "@/lib/useRealtimeDia";
 import { SelectorFechaHora, type SelectorFechaHoraHandle } from "@/components/shared/SelectorFechaHora";
+import { Captcha, captchaHabilitado } from "@/components/client/Captcha";
+import { Dialogo } from "@/components/ui/Dialogo";
 
 type Paso = 1 | 2 | 3;
 
@@ -33,6 +36,9 @@ export function WizardReserva({
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [aceptaPrivacidad, setAceptaPrivacidad] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaKey, setCaptchaKey] = useState(0);
   const [enviando, startEnvio] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const selectorRef = useRef<SelectorFechaHoraHandle>(null);
@@ -78,10 +84,15 @@ export function WizardReserva({
         email,
         servicioIds: seleccion,
         inicioISO: hora!,
+        aceptaPrivacidad,
+        captchaToken: captchaToken ?? undefined,
       });
       if (!res.ok) {
         setError(res.error);
         setModalAbierto(false);
+        // Un token de Turnstile solo vale una vez: tras un error hace falta otro.
+        setCaptchaToken(null);
+        setCaptchaKey((k) => k + 1);
         return;
       }
       router.push(`/reservar/confirmacion/${res.token}`);
@@ -94,7 +105,7 @@ export function WizardReserva({
   const nextDisabled =
     (paso === 1 && seleccion.length === 0) ||
     (paso === 2 && !hora) ||
-    (paso === 3 && (!nombreValido || !telefonoValido || !emailOk));
+    (paso === 3 && (!nombreValido || !telefonoValido || !emailOk || !aceptaPrivacidad));
 
   function next() {
     if (paso === 3) {
@@ -264,12 +275,13 @@ export function WizardReserva({
 
             <div className="flex flex-col gap-2.5">
               <div className="field">
-                <label>Nombre</label>
-                <input className="input" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre y apellido" />
+                <label htmlFor="r-nombre">Nombre</label>
+                <input id="r-nombre" className="input" autoComplete="name" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre y apellido" />
               </div>
               <div className="field">
-                <label>Teléfono</label>
+                <label htmlFor="r-tel">Teléfono</label>
                 <input
+                  id="r-tel"
                   className="input"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
@@ -277,16 +289,18 @@ export function WizardReserva({
                   inputMode="tel"
                   autoComplete="tel"
                   aria-invalid={telefonoConError}
+                  aria-describedby={telefonoConError ? "r-tel-error" : undefined}
                 />
                 {telefonoConError && (
-                  <p className="m-0 mt-1 text-[11px]" style={{ color: "var(--color-state-alta)" }}>
+                  <p id="r-tel-error" className="m-0 mt-1 text-[11px]" style={{ color: "var(--color-state-alta)" }}>
                     {TELEFONO_INVALIDO}
                   </p>
                 )}
               </div>
               <div className="field">
-                <label>Email</label>
+                <label htmlFor="r-email">Email (opcional, para la confirmación y el recordatorio)</label>
                 <input
+                  id="r-email"
                   className="input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -302,8 +316,23 @@ export function WizardReserva({
                 )}
               </div>
             </div>
+            <label className="flex items-start gap-2.5 text-[13px] leading-snug">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 flex-none"
+                checked={aceptaPrivacidad}
+                onChange={(e) => setAceptaPrivacidad(e.target.checked)}
+              />
+              <span>
+                He leído y acepto el{" "}
+                <Link href="/privacidad" target="_blank" className="underline">
+                  aviso de privacidad
+                </Link>
+                . Usamos tus datos solo para gestionar tu cita.
+              </span>
+            </label>
             {error && (
-              <p className="m-0 text-[13px]" style={{ color: "var(--color-state-alta)" }}>{error}</p>
+              <p role="alert" className="m-0 text-[13px]" style={{ color: "var(--color-state-alta)" }}>{error}</p>
             )}
           </div>
         )}
@@ -327,12 +356,7 @@ export function WizardReserva({
       </div>
 
       {modalAbierto && (
-        <div className="dialog-backdrop" style={{ animation: "fgFade .18s ease both" }}>
-          <div className="dialog" style={{ animation: "fgPop .3s cubic-bezier(.2,1.1,.3,1) both" }}>
-            <div className="flex items-baseline gap-2.5">
-              <span className="dialog-title flex-1">Revisa tu reserva</span>
-              <button className="btn btn-icon btn-secondary" aria-label="Cerrar" onClick={() => setModalAbierto(false)}>✕</button>
-            </div>
+        <Dialogo titulo="Revisa tu reserva" onClose={() => setModalAbierto(false)} style={{ animation: "fgPop .3s cubic-bezier(.2,1.1,.3,1) both" }}>
             {[
               { k: "Servicios", v: serviciosSel.map((s) => s.nombre).join(", ") },
               { k: "Duración", v: durTxt(duracionTotal) },
@@ -359,14 +383,19 @@ export function WizardReserva({
                 <span className="text-right">{d.v}</span>
               </div>
             ))}
-            <button className="btn btn-primary btn-block" style={{ height: 44 }} disabled={enviando} onClick={confirmar}>
-              {enviando ? "Confirmando…" : "Confirmar cita"}
+            <Captcha key={captchaKey} onToken={setCaptchaToken} />
+            <button
+              className="btn btn-primary btn-block"
+              style={{ height: 44 }}
+              disabled={enviando || (captchaHabilitado && !captchaToken)}
+              onClick={confirmar}
+            >
+              {enviando ? "Confirmando…" : captchaHabilitado && !captchaToken ? "Comprobando…" : "Confirmar cita"}
             </button>
             <button className="btn btn-ghost self-center" onClick={() => setModalAbierto(false)}>
               Seguir editando
             </button>
-          </div>
-        </div>
+        </Dialogo>
       )}
     </div>
   );

@@ -15,7 +15,7 @@ export default async function NuevaPasswordPage() {
   return (
     <div
       className="relative flex min-h-dvh items-center justify-center overflow-hidden px-6"
-      style={{ background: "radial-gradient(1200px 600px at 15% -10%, #1d2033, #0f111c 60%)" }}
+      style={{ background: "radial-gradient(1200px 600px at 15% -10%, color-mix(in srgb, var(--color-bg) 80%, var(--color-accent-900)), color-mix(in srgb, var(--color-bg) 70%, black) 60%)" }}
     >
       <HalosFondo />
       <div

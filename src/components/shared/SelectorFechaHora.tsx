@@ -26,9 +26,14 @@ export const SelectorFechaHora = forwardRef<
     onSlotsChange?: (slots: string[] | null) => void;
     /** El admin reserva sin antelación mínima; el público, no. */
     respetarAntelacion?: boolean;
+    /**
+     * Sustituye la carga de huecos del día. Lo usan «Mover a…» y «Cambiar
+     * fecha u hora», que piden los huecos sin contar la propia cita.
+     */
+    cargarSlots?: (fechaISO: string, duracionMin: number) => Promise<string[]>;
   }
 >(function SelectorFechaHora(
-  { duracionMin, fecha, onFecha, hora, onHora, onSlotsChange, respetarAntelacion = true },
+  { duracionMin, fecha, onFecha, hora, onHora, onSlotsChange, respetarAntelacion = true, cargarSlots: cargarSlotsProp },
   ref
 ) {
   const hoy = hoyMadridISO();
@@ -47,7 +52,7 @@ export const SelectorFechaHora = forwardRef<
 
   function cargarSlots() {
     if (!fecha || duracionMin === 0) return;
-    obtenerSlots(fecha, duracionMin, respetarAntelacion)
+    (cargarSlotsProp ? cargarSlotsProp(fecha, duracionMin) : obtenerSlots(fecha, duracionMin, respetarAntelacion))
       .then((s) => { setSlots(s); onSlotsChange?.(s); })
       .finally(() => setCargandoSlots(false));
   }
@@ -142,7 +147,7 @@ export const SelectorFechaHora = forwardRef<
                 {b && !cerrado && (
                   <span
                     className="block h-[3px] w-[68%] overflow-hidden rounded-sm"
-                    style={{ background: "color-mix(in srgb, #0f111c 45%, transparent)" }}
+                    style={{ background: "color-mix(in srgb, var(--color-bg) 70%, black)" }}
                   >
                     <span
                       className="block h-full"

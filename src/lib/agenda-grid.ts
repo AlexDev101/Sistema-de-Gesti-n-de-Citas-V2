@@ -1,27 +1,17 @@
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { TZ } from "@/lib/format";
 
-export const APERTURA_MIN = 10 * 60; // 10:00
-export const CIERRE_MIN = 20 * 60 + 30; // 20:30
-export const PAUSA_INICIO = 13 * 60 + 30; // 13:30
-export const PAUSA_FIN = 16 * 60 + 30; // 16:30
-export const ROW_MIN = 30;
-
-export function filasDia(): { min: number; label: string; pausa: boolean }[] {
-  const filas: { min: number; label: string; pausa: boolean }[] = [];
-  for (let t = APERTURA_MIN; t < CIERRE_MIN; t += ROW_MIN) {
-    filas.push({
-      min: t,
-      label: `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`,
-      pausa: t >= PAUSA_INICIO && t < PAUSA_FIN,
-    });
-  }
-  return filas;
-}
+// Fechas y rangos en hora de Madrid. El horario de apertura ya no vive aquí:
+// sale de la base (ver lib/horario.ts).
 
 export function minutosDelDia(iso: string): number {
   const [h, m] = formatInTimeZone(iso, TZ, "HH:mm").split(":").map(Number);
   return h * 60 + m;
+}
+
+/** Fecha (yyyy-mm-dd) en Madrid de un instante. Comparar `inicio.slice(0, 10)` usaba la fecha UTC. */
+export function fechaMadrid(iso: string | Date): string {
+  return formatInTimeZone(iso, TZ, "yyyy-MM-dd");
 }
 
 export function construirInicioMadrid(fechaISO: string, minutosDia: number): string {
@@ -34,7 +24,7 @@ export function inicioDiaMadrid(fechaISO: string): string {
   return fromZonedTime(`${fechaISO} 00:00:00`, TZ).toISOString();
 }
 
-function sumarDias(fechaISO: string, dias: number): string {
+export function sumarDias(fechaISO: string, dias: number): string {
   const d = new Date(fechaISO + "T00:00:00Z");
   d.setUTCDate(d.getUTCDate() + dias);
   return d.toISOString().slice(0, 10);
