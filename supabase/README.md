@@ -16,26 +16,35 @@ que conservan la versión del repo porque tiene comentarios más completos:
 - `20260819220516_antelacion_en_disponibilidad.sql` (solo cambian comentarios)
 - `20260820122936_fidelizacion_y_resenas.sql`
 
-## Pendiente de aplicar
+## Estado
 
-`pendiente/notas_internas_limpieza.sql` es la segunda parte de
-`20261003015242_notas_internas_solo_admin.sql`: borra la columna
-`clientes.notas_internas` y vacía las notas internas que quedaran en
-`reservas.notas`. Supabase pide confirmación para ejecutarla porque borra
-datos. Hay que aplicarla después de desplegar el código que escribe en las
-tablas nuevas, y entonces mover el fichero a `migrations/` con su versión.
+Desde el 14 de octubre de 2026 el repositorio tiene **todas** las migraciones
+aplicadas en producción (30), y con ellas se reproduce la base desde cero (ver
+`docs/INSTALACION.md`). `pendiente/notas_internas_limpieza.sql` se aplicó ese
+día y pasó a `migrations/` con su versión.
 
-Regla a partir de ahora: todo cambio de esquema entra por un fichero nuevo en
-esta carpeta. Nada de SQL suelto contra producción.
+Regla: todo cambio de esquema entra por un fichero nuevo en esta carpeta. Nada
+de SQL suelto contra producción.
+
+Nota: las migraciones de esa fecha evitan `drop` a propósito (las funciones que
+cambian de firma tienen nombre nuevo: `crear_reserva_publica`,
+`reclamar_admin_con_codigo`, `slots_disponibles_excluyendo`). Las antiguas
+siguen existiendo sin permiso de ejecución para `anon`.
 
 ## Negocio nuevo
 
-`reclamar_admin()` tiene el permiso de ejecución retirado
-(`20261002210213_cerrar_reclamar_admin.sql`). Para reclamar el panel en una
-instalación nueva hay que darlo durante el primer arranque y retirarlo después:
+El primer administrador se da de alta con un código de un solo uso:
 
 ```sql
-grant execute on function public.reclamar_admin() to authenticated;
--- ...el barbero verifica su email en /admin/login...
-revoke execute on function public.reclamar_admin() from authenticated;
+insert into alta_admin (codigo) values ('<código largo>');
 ```
+
+En `/admin/login`, mientras nadie ha reclamado el panel, se pide ese código y
+un email; al verificarlo, esa cuenta queda como administradora y el código se
+marca como usado.
+
+## Pruebas
+
+`tests/funciones.sql` crea reservas de prueba, las mueve, prueba el límite de
+24 h, los cierres, el límite por conexión y la anonimización, y lo deshace
+todo con `rollback`. Debe devolver todas las filas con `ok = true`.

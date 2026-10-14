@@ -1,58 +1,88 @@
-# FG Hair Studio — Sistema de Reserva de Citas
+# Sistema de Reserva de Citas para barberías y peluquerías
 
-Aplicación de reservas online para una barbería real (Francíso García, Niebla, Huelva). Los clientes reservan sin cuenta desde el móvil, y el barbero gestiona el día a día desde un panel de administración.
+Reservas online para un negocio de un sillón: los clientes reservan sin cuenta
+desde el móvil y el profesional gestiona el día desde un panel. Todo lo que
+cambia de un negocio a otro (nombre, barbero, horario, color, logo, textos
+legales) se edita desde el panel, sin tocar código.
 
-**Demo en producción:** https://fg-barbershop.vercel.app
-
-## Capturas
-
-_Pendiente: añade aquí 2-3 capturas (por ejemplo en `docs/screenshots/`) y se incrustan._
+Instancia actual: barbería de Francíso García (Niebla, Huelva), desplegada en
+Netlify. Para montar una instancia nueva: **[docs/INSTALACION.md](docs/INSTALACION.md)**.
 
 ## Funcionalidades
 
 ### Cliente (`/`, `/reservar`, `/cuenta`)
-- Reserva en 3 pasos (servicio → fecha/hora con ocupación en vivo → confirmación), sin necesidad de cuenta.
-- Anti-doble-reserva a nivel de base de datos (constraint `EXCLUDE` en Postgres), no solo en la app.
-- Email de confirmación y recordatorio a las 24 h antes de la cita (Resend + cron).
-- Cancelación desde el enlace del email de confirmación.
-- Programa de fidelización (1 sello por visita completada, canjeable cada 10) y reseñas post-cita, todo sin login.
-- Página de inicio con carrusel de trabajos recientes (deslizable, sin recortar fotos).
+- Reserva en 3 pasos (servicio → fecha y hora con ocupación en vivo → datos),
+  sin cuenta. Captcha invisible (Cloudflare Turnstile) y aceptación del aviso
+  de privacidad.
+- Imposible reservar dos veces el mismo hueco: lo impide la base de datos
+  (restricción `EXCLUDE`), no solo la app. Límite de citas pendientes por
+  teléfono y de reservas por hora desde la misma conexión.
+- Emails de confirmación, de cambio y de cancelación, y **recordatorio** entre
+  2 y 24 h antes (cada hora, lanzado desde la base con `pg_cron`).
+- **Cambiar fecha u hora** o **cancelar** desde el enlace de la cita, hasta el
+  límite configurado (24 h por defecto, aplicado en la base).
+- Mi cuenta con código por email: próximas citas, historial, «Repetir»,
+  tarjeta de fidelización y **borrar mis datos**.
+- Páginas de privacidad y aviso legal (plantilla que se completa en Ajustes).
 
-### Administración (`/admin`)
-- **Agenda**: vista día/semana/mes, reprogramar citas arrastrando.
-- **Hoy**: check-in rápido — marcar cita como asistida o no asistida.
-- **Nueva cita**: reservas por teléfono/walk-in, sin la antelación mínima que aplica al público.
-- **Servicios**, **Horario**, **Clientes**, **Métricas** y **Ajustes**.
-- Login solo con email + contraseña; sin `service_role` en ningún punto de la app (las tareas privilegiadas usan funciones `SECURITY DEFINER` en Postgres, acotadas con un secreto propio).
+### Panel (`/admin`)
+- **Hoy**: citas del día con llamar/WhatsApp, «Asistido / No asistido» con
+  deshacer, huecos libres y ocupación sobre el horario real, y aviso de emails
+  que no salieron.
+- **Agenda**: día/semana/mes con el horario real, arrastrar para mover (en
+  escritorio) y **Mover a…** (en el móvil), cancelación con confirmación y
+  aviso al cliente.
+- **Horario** semanal y **días cerrados** (vacaciones, festivos).
+- **Clientes**: segmentos, fidelización, notas, exportar e **importar CSV**
+  (Booksy, Treatwell, hojas de cálculo) y borrado de datos a petición (RGPD).
+- **Métricas**: cobrado, ticket medio, **tasa de plantones**, previsto y
+  comparación con los 30 días anteriores.
+- **Ajustes**: datos del negocio y del barbero, color y logo, reglas de
+  reserva, email de avisos y datos legales.
+- Funciona en el móvil (navegación superior, paneles como hojas inferiores).
 
 ## Stack
 
-- **Next.js 16** (App Router, Server Actions, Route Handlers) + **React 19** + **TypeScript**
-- **Supabase** (Postgres, Auth, RLS, funciones `SECURITY DEFINER`, cron)
-- **Tailwind CSS v4** con tokens de diseño propios ("Nocturne", ver `src/styles/nocturne.css`)
-- **Resend** para email transaccional
-- Desplegado en **Vercel**
+- **Next.js 16** (App Router, Server Actions, `after()`) + **React 19** + **TypeScript**
+- **Supabase**: Postgres con RLS, funciones `SECURITY DEFINER`, Auth, Realtime, `pg_cron` + `pg_net`
+- **Tailwind CSS v4** con los tokens de diseño «Nocturne» (`src/styles/nocturne.css`)
+- **Resend** para el email transaccional, **Cloudflare Turnstile** para el captcha
+- Desplegado en **Netlify**
 
-## Desarrollo local
+Sin `service_role` en ningún punto de la app: lo que necesita saltarse RLS
+(crear una reserva pública, leer el email de un cliente para avisarle, los
+recordatorios) pasa por funciones de Postgres que exigen un secreto de servidor
+(`CRON_SECRET`) que nunca llega al navegador.
+
+## Desarrollo
 
 ```bash
-npm install
+npm ci
+cp .env.example .env.local   # y rellénalo
 npm run dev
 ```
 
-Necesita un `.env.local` con las credenciales de Supabase y Resend (no incluido en el repositorio).
-
 ```bash
-npm run build   # build de producción
-npm run lint     # eslint
+npm test            # Vitest: horario, métricas, CSV, validaciones, fechas
+npm run lint
+npm run typecheck
+npm run build
 ```
+
+`supabase/tests/funciones.sql` prueba las funciones de reserva contra una base
+real sin dejar nada guardado. GitHub Actions ejecuta lint, tipos, tests y build
+en cada push (`.github/workflows/ci.yml`).
 
 ## Estructura
 
 ```
-src/app/(client)/     páginas públicas: landing, reservar, cuenta
-src/app/admin/        panel de administración (protegido)
-src/components/       componentes de cliente, admin y compartidos
-src/lib/              acciones de servidor, acceso a datos, utilidades
-supabase/migrations/  esquema y funciones de la base de datos
+src/app/(client)/      web pública: portada, reservar, cuenta, cita, legales
+src/app/admin/         panel (protegido)
+src/app/api/cron/      recordatorios (los llama la base cada hora)
+src/components/        cliente, panel, compartidos y UI (Dialogo)
+src/lib/               acciones de servidor, datos, avisos por email, utilidades puras (+ tests)
+src/emails/            plantillas de email (React Email)
+supabase/migrations/   esquema completo y reproducible
+supabase/tests/        prueba de humo de las funciones
+docs/INSTALACION.md    guía de entrega para un negocio nuevo
 ```
