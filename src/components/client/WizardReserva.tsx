@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { CaretLeft, Check } from "@phosphor-icons/react/ssr";
 import type { Servicio } from "@/lib/servicios-shared";
 import { agruparPorCategoria } from "@/lib/servicios-shared";
-import { durTxt, eur } from "@/lib/format";
+import { durTxt, eur, TZ } from "@/lib/format";
 import { crearReserva } from "@/lib/actions/reservas";
 import { EMAIL_INVALIDO, TELEFONO_INVALIDO, emailValido, telefonoEspanolValido } from "@/lib/validacion";
 import { useRealtimeDia } from "@/lib/useRealtimeDia";
@@ -131,7 +131,7 @@ export function WizardReserva({
         : "Elige un servicio"
       : paso === 2
         ? hora
-          ? `${fecha} · ${new Date(hora).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid" })}`
+          ? `${fecha} · ${new Date(hora).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}`
           : "Elige día y hora"
         : eur(precioTotal);
 
@@ -264,7 +264,7 @@ export function WizardReserva({
                   {hora &&
                     new Date(hora).toLocaleString("es-ES", {
                       weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-                      timeZone: "Europe/Madrid",
+                      timeZone: TZ,
                     })}
                 </span>
                 <span className="text-[22px]" style={{ fontFamily: "var(--font-heading)", color: "var(--color-accent-300)" }}>
@@ -363,7 +363,7 @@ export function WizardReserva({
               {
                 k: "Cuándo",
                 v: hora
-                  ? new Date(hora).toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Madrid" })
+                  ? new Date(hora).toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short", timeZone: TZ })
                   : "",
               },
               { k: "Nombre", v: nombre },

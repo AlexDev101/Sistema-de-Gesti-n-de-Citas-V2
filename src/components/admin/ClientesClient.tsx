@@ -15,7 +15,7 @@ import { telHref, whatsappHref } from "@/lib/contacto";
 import { Dialogo } from "@/components/ui/Dialogo";
 import { AvisoHost, useAviso } from "@/components/admin/Aviso";
 import { getReservasCliente, type ReservaAgenda } from "@/lib/actions/admin-agenda";
-import { eur } from "@/lib/format";
+import { eur, TZ } from "@/lib/format";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const SEGMENTOS = ["Todos", "VIP", "Recurrente", "Nuevo", "En riesgo"];
@@ -132,7 +132,7 @@ export function ClientesClient({
                 <td>{c.nombre}</td>
                 <td style={{ color: "color-mix(in srgb, var(--color-text) 60%, transparent)" }}>{c.telefono}</td>
                 <td>{c.visitas}</td>
-                <td>{c.ultima_visita ? new Date(c.ultima_visita).toLocaleDateString("es-ES", { timeZone: "Europe/Madrid" }) : "—"}</td>
+                <td>{c.ultima_visita ? new Date(c.ultima_visita).toLocaleDateString("es-ES", { timeZone: TZ }) : "—"}</td>
                 <td>{eur(c.gasto_total_cents)}</td>
                 <td><span className="tag tag-accent">{c.segmento}</span></td>
                 <td>
@@ -245,7 +245,7 @@ function FichaCliente({
           {(historial ?? []).slice(0, 6).map((h) => (
             <div key={h.id} className="flex justify-between text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 65%, transparent)" }}>
               <span>{h.servicios.map((s) => s.nombre).join(", ")}</span>
-              <span>{new Date(h.inicio).toLocaleDateString("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" })}</span>
+              <span>{new Date(h.inicio).toLocaleDateString("es-ES", { dateStyle: "medium", timeZone: TZ })}</span>
             </div>
           ))}
           {historial?.length === 0 && <span className="text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>Sin citas todavía.</span>}

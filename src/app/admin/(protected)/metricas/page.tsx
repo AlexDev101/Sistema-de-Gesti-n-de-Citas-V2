@@ -5,7 +5,7 @@ import { getResenasRecientes } from "@/lib/actions/admin-resenas";
 import { getBarbero } from "@/lib/data/negocio";
 import { fechaMadrid, rangoDia, sumarDias } from "@/lib/agenda-grid";
 import { hoyMadridISO } from "@/lib/wizard-helpers";
-import { eur } from "@/lib/format";
+import { eur, TZ } from "@/lib/format";
 import { previsto, resumirPeriodo, serviciosMasVendidos, variacion } from "@/lib/metricas";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
@@ -198,7 +198,7 @@ export default async function MetricasPage() {
                       ))}
                     </span>
                     <span className="text-[11px]" style={{ color: muted(55) }}>
-                      {new Date(x.creado_at).toLocaleDateString("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" })}
+                      {new Date(x.creado_at).toLocaleDateString("es-ES", { dateStyle: "medium", timeZone: TZ })}
                     </span>
                   </div>
                   {x.comentario && <p className="m-0 text-xs" style={{ color: muted(80) }}>{x.comentario}</p>}

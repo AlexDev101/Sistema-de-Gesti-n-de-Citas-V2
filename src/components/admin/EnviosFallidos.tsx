@@ -1,5 +1,6 @@
 "use client";
 
+import { TZ } from "@/lib/format";
 import { useRouter } from "next/navigation";
 import { marcarEnviosVistos, type EnvioFallido } from "@/lib/actions/admin-agenda";
 
@@ -27,7 +28,7 @@ export function EnviosFallidos({ envios }: { envios: EnvioFallido[] }) {
       <ul className="m-0 flex list-none flex-col gap-1 p-0 text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 75%, transparent)" }}>
         {envios.slice(0, 5).map((e) => (
           <li key={e.id}>
-            {new Date(e.creado_at).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Madrid" })} ·{" "}
+            {new Date(e.creado_at).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short", timeZone: TZ })} ·{" "}
             {TIPOS[e.tipo] ?? e.tipo}
             {e.detalle ? ` — ${e.detalle}` : ""}
           </li>

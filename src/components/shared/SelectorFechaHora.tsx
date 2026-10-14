@@ -2,7 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react/ssr";
-import { durTxt } from "@/lib/format";
+import { durTxt, TZ } from "@/lib/format";
 import { obtenerOcupacionMes, obtenerSlots } from "@/lib/actions/disponibilidad";
 import { bucket, LEYENDA_OCUPACION } from "@/lib/ocupacion";
 import { diasDelMes, esManana, fechaISO, hoyMadridISO, MESES, offsetPrimerDia } from "@/lib/wizard-helpers";
@@ -198,7 +198,7 @@ export const SelectorFechaHora = forwardRef<
                             color: "var(--color-text)",
                           }}
                         >
-                          {new Date(s).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid" })}
+                          {new Date(s).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}
                         </button>
                       );
                     })}

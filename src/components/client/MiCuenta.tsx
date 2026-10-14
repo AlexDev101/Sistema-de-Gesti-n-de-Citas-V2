@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { eur } from "@/lib/format";
+import { eur, TZ } from "@/lib/format";
 
 type ReservaFila = {
   id: string;
@@ -199,7 +199,7 @@ export function MiCuenta() {
                   <div className="flex flex-col gap-0.5">
                     <span className="text-base" style={{ fontFamily: "var(--font-heading)" }}>{nombreServicios(proxima)}</span>
                     <span className="text-xs" style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
-                      {new Date(proxima.inicio).toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Madrid" })}
+                      {new Date(proxima.inicio).toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short", timeZone: TZ })}
                     </span>
                   </div>
                   <span className="tag tag-accent">{eur(proxima.precio_total_cents)}</span>
@@ -223,7 +223,7 @@ export function MiCuenta() {
                 <div className="flex flex-1 flex-col gap-0.5">
                   <span className="text-sm">{nombreServicios(h)}</span>
                   <span className="text-[11px]" style={{ color: "color-mix(in srgb, var(--color-text) 42%, transparent)" }}>
-                    {new Date(h.inicio).toLocaleDateString("es-ES", { dateStyle: "medium", timeZone: "Europe/Madrid" })}
+                    {new Date(h.inicio).toLocaleDateString("es-ES", { dateStyle: "medium", timeZone: TZ })}
                   </span>
                 </div>
                 <Link

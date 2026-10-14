@@ -1,0 +1,14 @@
+# Despliegue en Netlify. Netlify detecta Next.js y usa su adaptador oficial
+# (OpenNext) sin más configuración: rutas, Server Actions, after(), imágenes…
+#
+# Los recordatorios NO dependen del cron del hosting: los lanza la propia base
+# cada hora con pg_cron (ver supabase/migrations/*_recordatorios_cada_hora.sql).
+# Variables de entorno necesarias: ver .env.example y docs/INSTALACION.md.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
