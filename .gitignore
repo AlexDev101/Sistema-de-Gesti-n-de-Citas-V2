@@ -46,3 +46,7 @@ next-env.d.ts
 
 # netlify
 .netlify
+
+# ajustes locales de Claude Code
+.claude/settings.local.json
+.claude/worktrees/

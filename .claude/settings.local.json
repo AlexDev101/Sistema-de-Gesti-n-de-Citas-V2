@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "mcp__e0d1458b-f6c0-40ad-a2b3-c9d89e426081__execute_sql",
-      "Bash(vercel env *)",
-      "Bash(vercel deploy *)"
-    ]
-  }
-}
