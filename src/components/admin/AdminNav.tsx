@@ -10,12 +10,14 @@ import {
   ChartBar,
   Users,
   GearSix,
+  Images,
 } from "@phosphor-icons/react/ssr";
 
 const ITEMS = [
   { href: "/admin/agenda", label: "Agenda", Icon: CalendarBlank },
   { href: "/admin/hoy", label: "Hoy", Icon: Sun },
   { href: "/admin/servicios", label: "Servicios", Icon: Scissors },
+  { href: "/admin/galeria", label: "Galería", Icon: Images },
   { href: "/admin/horario", label: "Horario", Icon: ClockCountdown },
   { href: "/admin/metricas", label: "Métricas", Icon: ChartBar },
   { href: "/admin/clientes", label: "Clientes", Icon: Users },

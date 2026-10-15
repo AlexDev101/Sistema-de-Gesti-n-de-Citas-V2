@@ -1,0 +1,112 @@
+// Lógica pura de la galería (sin Supabase ni React), para poder probarla.
+
+export type TipoMedia = "foto" | "video";
+
+export type GaleriaItem = {
+  id: string;
+  seccion_id: string | null;
+  tipo: TipoMedia;
+  url: string;
+  titulo: string | null;
+  orden: number;
+};
+
+export type GaleriaSeccion = {
+  id: string;
+  nombre: string;
+  orden: number;
+  items: GaleriaItem[];
+};
+
+export const BUCKET_GALERIA = "galeria";
+// El plan gratuito de Supabase corta en 50 MB por archivo; se avisa antes de
+// subir para no gastar la conexión del móvil en algo que va a fallar.
+export const MAX_FOTO_MB = 10;
+export const MAX_VIDEO_MB = 50;
+
+const IMAGEN = /^image\/(jpeg|png|webp|gif|avif)$/;
+const VIDEO = /^video\/(mp4|webm|quicktime)$/;
+
+export function tipoDeArchivo(mime: string): TipoMedia | null {
+  if (IMAGEN.test(mime)) return "foto";
+  if (VIDEO.test(mime)) return "video";
+  return null;
+}
+
+// Devuelve un mensaje si el archivo no se puede subir, o null si vale.
+export function problemaArchivo(archivo: { type: string; size: number; name: string }): string | null {
+  const tipo = tipoDeArchivo(archivo.type);
+  if (!tipo) return `«${archivo.name}» no es una foto ni un vídeo compatible (JPG, PNG, WEBP, MP4, MOV o WEBM).`;
+  const max = tipo === "foto" ? MAX_FOTO_MB : MAX_VIDEO_MB;
+  if (archivo.size > max * 1024 * 1024) return `«${archivo.name}» pesa más de ${max} MB.`;
+  return null;
+}
+
+const YT = [
+  /^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?(?:.*&)?v=([\w-]{11})/,
+  /^https:\/\/(?:www\.|m\.)?youtube\.com\/(?:shorts|embed|live)\/([\w-]{11})/,
+  /^https:\/\/youtu\.be\/([\w-]{11})/,
+];
+
+export function youtubeId(url: string): string | null {
+  for (const re of YT) {
+    const m = url.trim().match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+// Se aceptan direcciones https:// (Supabase Storage, YouTube, un mp4 en otro
+// sitio) y las fotos que ya venían con la web en /uploads/.
+export function urlMediaValida(url: string): boolean {
+  const u = url.trim();
+  if (/^\/uploads\/[\w.-]+$/.test(u)) return true;
+  return /^https:\/\/[^\s"'<>]+$/.test(u);
+}
+
+// Un vídeo por enlace sólo se admite si se puede reproducir: YouTube o un
+// archivo de vídeo directo.
+export function enlaceVideoValido(url: string): boolean {
+  if (!urlMediaValida(url)) return false;
+  if (youtubeId(url)) return true;
+  return /\.(mp4|webm|mov)(\?.*)?$/i.test(url.trim());
+}
+
+// Ruta dentro del bucket a partir de la URL pública, para poder borrar el
+// archivo. null si la URL no apunta a nuestro bucket (YouTube, /uploads/…).
+export function rutaEnBucket(url: string): string | null {
+  const marca = `/storage/v1/object/public/${BUCKET_GALERIA}/`;
+  const i = url.indexOf(marca);
+  if (i === -1) return null;
+  const ruta = decodeURIComponent(url.slice(i + marca.length).split("?")[0]);
+  return ruta || null;
+}
+
+// Nombre de archivo sin espacios ni acentos, único y con la extensión original.
+export function nombreArchivo(original: string, ahora = Date.now(), azar = Math.random()): string {
+  const ext = (original.match(/\.([a-z0-9]{1,5})$/i)?.[1] ?? "bin").toLowerCase();
+  const sufijo = Math.floor(azar * 1e8).toString(36);
+  return `${ahora}-${sufijo}.${ext}`;
+}
+
+export function agrupar(
+  secciones: { id: string; nombre: string; orden: number }[],
+  items: { id: string; seccion_id: string | null; tipo: string; url: string; titulo: string | null; orden: number }[]
+): GaleriaSeccion[] {
+  return [...secciones]
+    .sort((a, b) => a.orden - b.orden)
+    .map((s) => ({
+      ...s,
+      items: items
+        .filter((it) => it.seccion_id === s.id && (it.tipo === "foto" || it.tipo === "video"))
+        .sort((a, b) => a.orden - b.orden)
+        .map((it) => ({ ...it, tipo: it.tipo as TipoMedia })),
+    }));
+}
+
+// Vecino con el que intercambiar el orden al mover arriba/abajo.
+export function vecino<T extends { id: string }>(lista: T[], id: string, dir: 1 | -1): T | null {
+  const i = lista.findIndex((x) => x.id === id);
+  if (i === -1) return null;
+  return lista[i + dir] ?? null;
+}

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { TrabajosCarousel } from "@/components/client/TrabajosCarousel";
+import { GaleriaPublica } from "@/components/client/GaleriaCarousel";
+import { getGaleria } from "@/lib/data/galeria";
 import { getServiciosActivos } from "@/lib/data/servicios";
 import { getBarbero, getConfiguracion, getHorario } from "@/lib/data/negocio";
 import { horarioPublico } from "@/lib/horario";
@@ -8,15 +9,16 @@ import { durTxt, eur } from "@/lib/format";
 
 export const revalidate = 0;
 
-const TRABAJOS = ["trabajo-1.jpeg", "trabajo-2.jpeg", "trabajo-3.jpeg", "trabajo-4.jpeg"];
-
 export default async function LandingPage() {
-  const [servicios, barbero, configuracion, horario] = await Promise.all([
+  const [servicios, barbero, configuracion, horario, galeria] = await Promise.all([
     getServiciosActivos(),
     getBarbero(),
     getConfiguracion(),
     getHorario(),
+    getGaleria(),
   ]);
+  // La galería se gestiona en el panel (Galería); sin fotos ni vídeos, no se pinta.
+  const hayGaleria = galeria.some((s) => s.items.length > 0);
   const destacados = servicios.slice(0, 5);
   // Horario público desde la base: el mismo que usa la reserva. Antes era una
   // lista escrita en el código que no cambiaba al editar el horario.
@@ -149,10 +151,14 @@ export default async function LandingPage() {
       )}
 
       <div className="flex flex-col gap-3 px-5 pb-5">
-        <h6 style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
-          Trabajos y Cortes
-        </h6>
-        <TrabajosCarousel archivos={TRABAJOS} />
+        {hayGaleria && (
+          <>
+            <h6 style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
+              Trabajos y Cortes
+            </h6>
+            <GaleriaPublica secciones={galeria} />
+          </>
+        )}
         <h6 style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
           Contacto y Horarios
         </h6>
