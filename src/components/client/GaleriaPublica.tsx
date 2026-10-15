@@ -66,7 +66,9 @@ function Mosaico({ items }: { items: GaleriaItem[] }) {
 
   return (
     <>
-      <div className="flex items-start gap-1.5">
+      {/* items-stretch: las dos columnas acaban a la misma altura; la más corta
+          reparte lo que le sobra entre sus piezas (ver flexGrow en Pieza). */}
+      <div className="flex items-stretch gap-1.5">
         {columnas.map((col, c) => (
           <div key={c} className="flex min-w-0 flex-1 flex-col gap-1.5">
             {col.map((item) => (
@@ -114,6 +116,7 @@ function Pieza({ item, onAbrir }: { item: GaleriaItem; onAbrir: (el: HTMLButtonE
       className="group relative isolate block w-full overflow-hidden rounded-[12px] focus-visible:outline-2 focus-visible:outline-offset-2"
       style={{
         aspectRatio: `1 / ${proporcion(item)}`,
+        flexGrow: proporcion(item),
         background: "var(--color-surface)",
         outlineColor: "var(--color-accent-300)",
       }}
