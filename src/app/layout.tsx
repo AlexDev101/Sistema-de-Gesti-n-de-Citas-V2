@@ -38,8 +38,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const marca = cssMarca(config?.color_acento);
   return (
     <html lang="es" className={`${inter.variable} h-full antialiased`}>
-      <head>{marca && <style dangerouslySetInnerHTML={{ __html: marca }} />}</head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* El color de marca va al principio de <body>, no en <head>: Netlify
+          inyecta un comentario en <head> que no está en el HTML de React, y
+          cualquier cosa nuestra ahí hacía fallar la hidratación (error #418):
+          React rehacía la página en el cliente y se perdía la hoja de estilos.
+          En <body> aplica igual y, al ir después de la hoja global, la pisa. */}
+      <body className="min-h-full flex flex-col">
+        {marca ? <style dangerouslySetInnerHTML={{ __html: marca }} /> : null}
+        {children}
+      </body>
     </html>
   );
 }
