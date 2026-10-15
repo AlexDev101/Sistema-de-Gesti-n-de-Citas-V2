@@ -9,6 +9,9 @@ export type GaleriaItem = {
   url: string;
   titulo: string | null;
   orden: number;
+  // Medidas en píxeles (opcionales: los elementos antiguos o los enlaces no las tienen).
+  ancho?: number | null;
+  alto?: number | null;
 };
 
 export type GaleriaSeccion = {
@@ -20,8 +23,10 @@ export type GaleriaSeccion = {
 
 export const BUCKET_GALERIA = "galeria";
 // El plan gratuito de Supabase corta en 50 MB por archivo; se avisa antes de
-// subir para no gastar la conexión del móvil en algo que va a fallar.
-export const MAX_FOTO_MB = 10;
+// subir para no gastar la conexión del móvil en algo que va a fallar. Las
+// fotos se reducen en el navegador antes de subir (preparar-medio.ts), así
+// que el límite de foto es sobre el original.
+export const MAX_FOTO_MB = 25;
 export const MAX_VIDEO_MB = 50;
 
 const IMAGEN = /^image\/(jpeg|png|webp|gif|avif)$/;
@@ -91,7 +96,16 @@ export function nombreArchivo(original: string, ahora = Date.now(), azar = Math.
 
 export function agrupar(
   secciones: { id: string; nombre: string; orden: number }[],
-  items: { id: string; seccion_id: string | null; tipo: string; url: string; titulo: string | null; orden: number }[]
+  items: {
+    id: string;
+    seccion_id: string | null;
+    tipo: string;
+    url: string;
+    titulo: string | null;
+    orden: number;
+    ancho?: number | null;
+    alto?: number | null;
+  }[]
 ): GaleriaSeccion[] {
   return [...secciones]
     .sort((a, b) => a.orden - b.orden)
@@ -109,4 +123,35 @@ export function vecino<T extends { id: string }>(lista: T[], id: string, dir: 1 
   const i = lista.findIndex((x) => x.id === id);
   if (i === -1) return null;
   return lista[i + dir] ?? null;
+}
+
+export function medidasValidas(ancho: unknown, alto: unknown): boolean {
+  const ok = (n: unknown) => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= 20000;
+  return ok(ancho) && ok(alto);
+}
+
+// Alto / ancho de cada pieza en el mosaico. Las proporciones extremas se
+// recortan para que una panorámica no quede como una tira ni una captura
+// larguísima ocupe toda la columna.
+export function proporcion(item: Pick<GaleriaItem, "tipo" | "url" | "ancho" | "alto">): number {
+  let p: number;
+  if (item.ancho && item.alto) p = item.alto / item.ancho;
+  else if (item.tipo === "video" && youtubeId(item.url)) p = /\/shorts\//.test(item.url) ? 16 / 9 : 9 / 16;
+  else p = 5 / 4;
+  return Math.min(16 / 9, Math.max(9 / 16, p));
+}
+
+// Reparte las piezas en columnas metiendo cada una en la más corta, para que
+// el mosaico quede equilibrado y se lea en orden de izquierda a derecha.
+// Es determinista: el servidor y el navegador llegan al mismo reparto.
+export function repartirColumnas<T>(items: T[], columnas: number, alto: (item: T) => number): T[][] {
+  const cols: T[][] = Array.from({ length: columnas }, () => []);
+  const altos = new Array(columnas).fill(0);
+  for (const item of items) {
+    let i = 0;
+    for (let c = 1; c < columnas; c++) if (altos[c] < altos[i] - 1e-9) i = c;
+    cols[i].push(item);
+    altos[i] += alto(item);
+  }
+  return cols;
 }

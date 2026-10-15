@@ -23,7 +23,7 @@ describe("galería", () => {
 
   it("rechaza archivos demasiado grandes o de otro tipo", () => {
     expect(problemaArchivo({ type: "image/png", size: 2 * 1024 * 1024, name: "a.png" })).toBeNull();
-    expect(problemaArchivo({ type: "image/png", size: 11 * 1024 * 1024, name: "a.png" })).toMatch(/10 MB/);
+    expect(problemaArchivo({ type: "image/png", size: 26 * 1024 * 1024, name: "a.png" })).toMatch(/25 MB/);
     expect(problemaArchivo({ type: "video/mp4", size: 40 * 1024 * 1024, name: "v.mp4" })).toBeNull();
     expect(problemaArchivo({ type: "video/mp4", size: 60 * 1024 * 1024, name: "v.mp4" })).toMatch(/50 MB/);
     expect(problemaArchivo({ type: "text/plain", size: 10, name: "x.txt" })).toMatch(/no es una foto/);
@@ -83,5 +83,31 @@ describe("galería", () => {
     expect(vecino(l, "b", 1)?.id).toBe("c");
     expect(vecino(l, "a", -1)).toBeNull();
     expect(vecino(l, "x", 1)).toBeNull();
+  });
+});
+
+describe("mosaico", () => {
+  it("proporcion usa las medidas, YouTube Shorts en vertical y recorta extremos", async () => {
+    const { proporcion } = await import("../galeria");
+    expect(proporcion({ tipo: "foto", url: "x", ancho: 400, alto: 600 })).toBeCloseTo(1.5);
+    expect(proporcion({ tipo: "video", url: "https://youtube.com/shorts/abcdefghijk" })).toBeCloseTo(16 / 9);
+    expect(proporcion({ tipo: "video", url: "https://youtu.be/abcdefghijk" })).toBeCloseTo(9 / 16);
+    expect(proporcion({ tipo: "foto", url: "x", ancho: 100, alto: 1000 })).toBeCloseTo(16 / 9);
+    expect(proporcion({ tipo: "foto", url: "x" })).toBeCloseTo(1.25);
+  });
+
+  it("repartirColumnas mete cada pieza en la columna más corta", async () => {
+    const { repartirColumnas } = await import("../galeria");
+    const altos: Record<string, number> = { a: 2, b: 1, c: 1, d: 1 };
+    const cols = repartirColumnas(["a", "b", "c", "d"], 2, (x) => altos[x]);
+    expect(cols).toEqual([["a", "d"], ["b", "c"]]);
+  });
+
+  it("medidasValidas sólo acepta enteros razonables", async () => {
+    const { medidasValidas } = await import("../galeria");
+    expect(medidasValidas(800, 600)).toBe(true);
+    expect(medidasValidas(0, 600)).toBe(false);
+    expect(medidasValidas(1.5, 600)).toBe(false);
+    expect(medidasValidas(undefined, undefined)).toBe(false);
   });
 });

@@ -257,6 +257,8 @@ export type Database = {
       }
       galeria_items: {
         Row: {
+          alto: number | null
+          ancho: number | null
           created_at: string
           id: string
           orden: number
@@ -266,6 +268,8 @@ export type Database = {
           url: string
         }
         Insert: {
+          alto?: number | null
+          ancho?: number | null
           created_at?: string
           id?: string
           orden?: number
@@ -275,6 +279,8 @@ export type Database = {
           url: string
         }
         Update: {
+          alto?: number | null
+          ancho?: number | null
           created_at?: string
           id?: string
           orden?: number

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { fallo, resultado, OK, type Resultado } from "@/lib/actions/resultado";
-import { BUCKET_GALERIA, enlaceVideoValido, rutaEnBucket, urlMediaValida, vecino, type TipoMedia } from "@/lib/galeria";
+import { BUCKET_GALERIA, enlaceVideoValido, medidasValidas, rutaEnBucket, urlMediaValida, vecino, type TipoMedia } from "@/lib/galeria";
 
 // Todas las escrituras van con la sesión del admin: RLS (es_admin()) decide,
 // tanto en las tablas como en el bucket. Ver *_galeria.sql.
@@ -87,6 +87,8 @@ export async function crearItem(entrada: {
   tipo: TipoMedia;
   url: string;
   titulo?: string;
+  ancho?: number;
+  alto?: number;
 }): Promise<Resultado> {
   const url = entrada.url.trim();
   if (entrada.tipo !== "foto" && entrada.tipo !== "video") return fallo("Tipo no válido");
@@ -97,6 +99,8 @@ export async function crearItem(entrada: {
     return fallo("Pega un enlace de YouTube o de un archivo .mp4 / .webm");
   }
   const titulo = entrada.titulo?.trim().slice(0, MAX_TITULO) || null;
+  // Las medidas sólo sirven para pintar el mosaico; si no cuadran se ignoran.
+  const medidas = medidasValidas(entrada.ancho, entrada.alto) ? { ancho: entrada.ancho!, alto: entrada.alto! } : {};
   const supabase = await createClient();
   const { data: ultimo } = await supabase
     .from("galeria_items")
@@ -107,7 +111,7 @@ export async function crearItem(entrada: {
   const orden = (ultimo?.[0]?.orden ?? 0) + 1;
   const { data, error } = await supabase
     .from("galeria_items")
-    .insert({ seccion_id: entrada.seccionId, tipo: entrada.tipo, url, titulo, orden })
+    .insert({ seccion_id: entrada.seccionId, tipo: entrada.tipo, url, titulo, orden, ...medidas })
     .select("id");
   const res = resultado(error, data);
   if (res.ok) refrescar();

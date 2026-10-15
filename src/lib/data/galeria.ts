@@ -10,7 +10,7 @@ export const getGaleria = cache(async (): Promise<GaleriaSeccion[]> => {
   const supabase = await createClient();
   const [secciones, items] = await Promise.all([
     supabase.from("galeria_secciones").select("id, nombre, orden").order("orden"),
-    supabase.from("galeria_items").select("id, seccion_id, tipo, url, titulo, orden").order("orden"),
+    supabase.from("galeria_items").select("id, seccion_id, tipo, url, titulo, orden, ancho, alto").order("orden"),
   ]);
   if (secciones.error) throw secciones.error;
   if (items.error) throw items.error;

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { GaleriaPublica } from "@/components/client/GaleriaCarousel";
+import { GaleriaPublica } from "@/components/client/GaleriaPublica";
 import { getGaleria } from "@/lib/data/galeria";
 import { getServiciosActivos } from "@/lib/data/servicios";
 import { getBarbero, getConfiguracion, getHorario } from "@/lib/data/negocio";

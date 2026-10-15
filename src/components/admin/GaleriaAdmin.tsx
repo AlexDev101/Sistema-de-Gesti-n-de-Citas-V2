@@ -15,6 +15,7 @@ import {
   UploadSimple,
 } from "@phosphor-icons/react/ssr";
 import { createClient } from "@/lib/supabase/client";
+import { prepararFoto, prepararVideo } from "@/lib/preparar-medio";
 import {
   BUCKET_GALERIA,
   MAX_FOTO_MB,
@@ -74,8 +75,9 @@ export function GaleriaAdmin({ secciones }: { secciones: GaleriaSeccion[] }) {
     <div className="flex max-w-[960px] flex-col gap-5">
       <p className="m-0 text-[13px] leading-relaxed" style={{ color: muted(65) }}>
         Organiza tus trabajos por secciones (por ejemplo «Degradados», «Barba» o «Niños»). Se muestran en la portada,
-        en «Trabajos y Cortes», en el mismo orden que aquí. Fotos hasta {MAX_FOTO_MB} MB y vídeos hasta {MAX_VIDEO_MB} MB,
-        o un enlace de YouTube.
+        en «Trabajos y Cortes», en el mismo orden que aquí. Las fotos (hasta {MAX_FOTO_MB} MB) se reducen solas antes de
+        subirlas, sin que se note la diferencia. Los vídeos (hasta {MAX_VIDEO_MB} MB) ocupan mucho más: si los tienes en
+        YouTube, también Shorts, pega el enlace y no gastan espacio.
       </p>
 
       <form onSubmit={anadirSeccion} className="flex flex-wrap items-center gap-2">
@@ -198,9 +200,10 @@ function SeccionCard({
     setProgreso({ hecho: 0, total: validos.length });
     for (const archivo of validos) {
       const tipo = tipoDeArchivo(archivo.type)!;
-      const ruta = `${seccion.id}/${nombreArchivo(archivo.name)}`;
-      const { error } = await supabase.storage.from(BUCKET_GALERIA).upload(ruta, archivo, {
-        contentType: archivo.type,
+      const medio = tipo === "foto" ? await prepararFoto(archivo) : await prepararVideo(archivo);
+      const ruta = `${seccion.id}/${nombreArchivo(medio.nombre)}`;
+      const { error } = await supabase.storage.from(BUCKET_GALERIA).upload(ruta, medio.archivo, {
+        contentType: medio.tipoMime,
         cacheControl: "31536000",
         upsert: false,
       });
@@ -208,7 +211,7 @@ function SeccionCard({
         fallos++;
       } else {
         const url = supabase.storage.from(BUCKET_GALERIA).getPublicUrl(ruta).data.publicUrl;
-        const res = await crearItem({ seccionId: seccion.id, tipo, url });
+        const res = await crearItem({ seccionId: seccion.id, tipo, url, ancho: medio.ancho, alto: medio.alto });
         if (res.ok) subidos++;
         else {
           fallos++;
