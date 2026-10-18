@@ -50,3 +50,7 @@ next-env.d.ts
 # ajustes locales de Claude Code
 .claude/settings.local.json
 .claude/worktrees/
+
+# prospección: listas de contactos y datos personales, nunca al repositorio
+/scripts/prospeccion/salida/
+/scripts/prospeccion/no-contactar.txt
