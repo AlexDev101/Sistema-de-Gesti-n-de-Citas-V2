@@ -4,6 +4,7 @@
 // Booksy: si la «web» del negocio es una de ellas, se deduce sólo de la dirección.
 
 import { AGENTE, instagramDe, esRedOMarketplace } from "./osm.mjs";
+import { extraerPerfil } from "./perfil.mjs";
 
 // «marketplace»: el cliente reserva dentro de una plataforma ajena.
 // «herramienta»: tiene un sistema de citas propio (más difícil de vender).
@@ -28,8 +29,9 @@ export function plataformasEn(texto) {
   return PLATAFORMAS.filter((p) => p.re.test(texto)).map(({ nombre, tipo }) => ({ nombre, tipo }));
 }
 
-// Pura (sin red): qué se deduce del HTML de una portada.
-export function analizarHtml(html) {
+// Pura (sin red): qué se deduce del HTML de una portada. Con `base` (la dirección
+// de la página) también extrae el perfil: textos, servicios, horario e imágenes.
+export function analizarHtml(html, base) {
   const wa = html.match(WHATSAPP);
   const ig = [...html.matchAll(/instagram\.com\/([A-Za-z0-9._]{2,30})/gi)].map((m) => instagramDe(m[0])).find(Boolean);
   return {
@@ -37,6 +39,7 @@ export function analizarHtml(html) {
     whatsapp: wa ? wa[1] : null,
     instagram: ig ?? null,
     textoReserva: TEXTO_RESERVA.test(html),
+    ...(base ? { perfil: extraerPerfil(html, base) } : {}),
   };
 }
 
@@ -70,7 +73,8 @@ async function leerLimitado(res, max = MAX_BYTES) {
   return Buffer.concat(trozos.map((t) => Buffer.from(t))).toString("utf8");
 }
 
-const SIN_WEB = { web: null, motivo: null, plataformas: [], whatsapp: null, instagram: null, textoReserva: false };
+/** @type {{ web: string | null, motivo: string | null, plataformas: { nombre: string, tipo: string }[], whatsapp: string | null, instagram: string | null, textoReserva: boolean, perfil: ReturnType<typeof extraerPerfil> | null }} */
+const SIN_WEB = { web: null, motivo: null, plataformas: [], whatsapp: null, instagram: null, textoReserva: false, perfil: null };
 
 // Devuelve siempre un objeto; si algo falla, `motivo` dice por qué y el resto va vacío.
 export async function analizarSitio(web, { fetchFn = fetch, timeoutMs = 10_000 } = {}) {
@@ -91,7 +95,7 @@ export async function analizarSitio(web, { fetchFn = fetch, timeoutMs = 10_000 }
     const res = await fetchFn(web, cab);
     if (!res.ok) return { ...base, motivo: `http-${res.status}` };
     if (!/html/i.test(res.headers.get("content-type") ?? "")) return { ...base, motivo: "no-html" };
-    return { ...base, ...analizarHtml(await leerLimitado(res)), motivo: null };
+    return { ...base, ...analizarHtml(await leerLimitado(res), res.url || web), motivo: null };
   } catch (e) {
     return { ...base, motivo: e?.name === "TimeoutError" ? "tiempo-agotado" : "no-responde" };
   }
