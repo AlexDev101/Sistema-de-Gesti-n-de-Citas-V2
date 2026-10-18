@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import type { Barbero, Configuracion } from "@/lib/data/negocio";
 import { actualizarBarbero, actualizarConfiguracion, actualizarEmailAvisos } from "@/lib/actions/admin-ajustes";
 import { AvisoHost, useAviso } from "@/components/admin/Aviso";
+import { createClient } from "@/lib/supabase/client";
+import { BUCKET_GALERIA, nombreArchivo } from "@/lib/galeria";
+import { problemaLogo } from "@/lib/logo";
 
 const muted = (pct: number) => `color-mix(in srgb, var(--color-text) ${pct}%, transparent)`;
 
@@ -54,6 +57,8 @@ export function AjustesForm({
   const [politica, setPolitica] = useState(configuracion.politica_cancelacion);
   const [color, setColor] = useState(configuracion.color_acento ?? "");
   const [logo, setLogo] = useState(configuracion.logo_url ?? "");
+  const [subiendoLogo, setSubiendoLogo] = useState(false);
+  const inputLogo = useRef<HTMLInputElement>(null);
   const [titular, setTitular] = useState(configuracion.legal_titular ?? "");
   const [nif, setNif] = useState(configuracion.legal_nif ?? "");
   const [emailLegal, setEmailLegal] = useState(configuracion.legal_email ?? "");
@@ -62,6 +67,34 @@ export function AjustesForm({
   const [emailAvisos, setEmailAvisos] = useState(emailAvisosInicial);
   const [guardandoEstado, setGuardandoEstado] = useState<"no" | "si" | "hecho">("no");
   const { aviso, avisar, cerrar } = useAviso();
+
+  // El logo se sube al mismo almacenamiento que la galería (con la sesión del
+  // admin) y su dirección se rellena sola; se publica al pulsar «Guardar cambios».
+  async function subirLogo(archivos: FileList | null) {
+    const archivo = archivos?.[0];
+    if (!archivo) return;
+    const problema = problemaLogo(archivo);
+    if (problema) {
+      avisar(problema, true);
+      return;
+    }
+    setSubiendoLogo(true);
+    const supabase = createClient();
+    const ruta = `logo/${nombreArchivo(archivo.name)}`;
+    const { error } = await supabase.storage.from(BUCKET_GALERIA).upload(ruta, archivo, {
+      contentType: archivo.type,
+      cacheControl: "31536000",
+      upsert: false,
+    });
+    setSubiendoLogo(false);
+    if (inputLogo.current) inputLogo.current.value = "";
+    if (error) {
+      avisar("No se pudo subir el logo. Puede que la sesión haya caducado: vuelve a entrar e inténtalo otra vez.", true);
+      return;
+    }
+    setLogo(supabase.storage.from(BUCKET_GALERIA).getPublicUrl(ruta).data.publicUrl);
+    avisar("Logo subido. Pulsa «Guardar cambios» para publicarlo en la portada.");
+  }
 
   async function guardar() {
     setGuardandoEstado("si");
@@ -139,8 +172,45 @@ export function AjustesForm({
             <input id="aj-color" className="input" value={color} placeholder="#9184d9" onChange={(e) => setColor(e.target.value)} />
           </div>
         </Campo>
-        <Campo id="aj-logo" label="Logo (dirección de la imagen)" ayuda="Opcional. Una URL https:// a un PNG o SVG con fondo transparente.">
-          <input id="aj-logo" className="input" value={logo} placeholder="https://…" onChange={(e) => setLogo(e.target.value)} />
+        <Campo
+          id="aj-logo"
+          label="Logo"
+          ayuda="Se muestra en grande sobre la foto de la portada. Mejor un PNG o SVG con fondo transparente y en colores claros (hasta 2 MB)."
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            {logo && (
+              // eslint-disable-next-line @next/next/no-img-element -- vista previa de la URL elegida
+              <img
+                src={logo}
+                alt="Logo actual"
+                className="h-16 w-auto max-w-[200px] rounded-md object-contain p-2"
+                style={{ background: "color-mix(in srgb, var(--color-bg) 92%, black)", border: "1px solid var(--color-divider)" }}
+              />
+            )}
+            <input
+              ref={inputLogo}
+              type="file"
+              accept="image/png,image/svg+xml,image/webp,image/jpeg"
+              hidden
+              onChange={(e) => subirLogo(e.target.files)}
+            />
+            <button type="button" className="btn btn-secondary" disabled={subiendoLogo} onClick={() => inputLogo.current?.click()}>
+              {subiendoLogo ? "Subiendo…" : logo ? "Cambiar logo" : "Subir logo"}
+            </button>
+            {logo && (
+              <button type="button" className="btn btn-ghost" disabled={subiendoLogo} onClick={() => setLogo("")}>
+                Quitar
+              </button>
+            )}
+          </div>
+          <input
+            id="aj-logo"
+            className="input mt-2"
+            value={logo}
+            placeholder="o pega aquí una dirección https://…"
+            aria-label="Dirección del logo"
+            onChange={(e) => setLogo(e.target.value)}
+          />
         </Campo>
       </Grupo>
 

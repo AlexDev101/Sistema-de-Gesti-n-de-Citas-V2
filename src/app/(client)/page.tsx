@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { GaleriaPublica } from "@/components/client/GaleriaPublica";
+import { Portada } from "@/components/client/Portada";
 import { getGaleria } from "@/lib/data/galeria";
 import { getServiciosActivos } from "@/lib/data/servicios";
 import { getBarbero, getConfiguracion, getHorario } from "@/lib/data/negocio";
@@ -41,38 +42,7 @@ export default async function LandingPage() {
       {jsonLd && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       )}
-      <div className="relative mb-1 h-[300px]">
-        <Image
-          src="/uploads/hero-local.jpeg"
-          alt="Interior de la barbería"
-          fill
-          priority
-          className="object-cover lighten"
-        />
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, var(--color-bg) 4%, color-mix(in srgb, var(--color-bg) 20%, transparent) 55%, transparent)",
-          }}
-        />
-        <div className="pointer-events-none absolute right-5 bottom-[18px] left-5">
-          {configuracion?.logo_url && (
-            // eslint-disable-next-line @next/next/no-img-element -- URL externa elegida en Ajustes
-            <img src={configuracion.logo_url} alt="" className="mb-3 h-11 w-auto max-w-[180px] object-contain" />
-          )}
-          <span
-            className="text-[10px] tracking-[0.14em] uppercase"
-            style={{ color: "var(--color-accent)" }}
-          >
-            {configuracion?.nombre_negocio}
-            {configuracion?.ciudad ? ` · ${configuracion.ciudad}` : ""}
-          </span>
-          <h1 className="mt-2 text-[30px] leading-tight text-balance" style={{ fontFamily: "var(--font-heading)", fontWeight: 500 }}>
-            Corte y barba, cita en un minuto
-          </h1>
-        </div>
-      </div>
+      <Portada nombre={configuracion?.nombre_negocio ?? "Reserva tu cita"} logoUrl={configuracion?.logo_url ?? null} />
 
       <div className="flex flex-col gap-[10px] px-5">
         <Link href="/reservar" className="btn btn-primary btn-block h-12 text-[15px]">

@@ -111,3 +111,14 @@ describe("mosaico", () => {
     expect(medidasValidas(undefined, undefined)).toBe(false);
   });
 });
+
+describe("logo", () => {
+  it("problemaLogo acepta PNG/SVG pequeños y rechaza el resto", async () => {
+    const { problemaLogo } = await import("../logo");
+    expect(problemaLogo({ type: "image/png", size: 100_000, name: "logo.png" })).toBeNull();
+    expect(problemaLogo({ type: "image/svg+xml", size: 5_000, name: "logo.svg" })).toBeNull();
+    expect(problemaLogo({ type: "image/gif", size: 5_000, name: "logo.gif" })).toMatch(/no es un logo/);
+    expect(problemaLogo({ type: "video/mp4", size: 5_000, name: "v.mp4" })).toMatch(/no es un logo/);
+    expect(problemaLogo({ type: "image/png", size: 3 * 1024 * 1024, name: "grande.png" })).toMatch(/2 MB/);
+  });
+});
